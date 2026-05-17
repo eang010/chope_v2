@@ -147,35 +147,35 @@ function ChopeCard({ chope, onUnchope }: { chope: DBChope; onUnchope?: (chopeId:
             </DrawerHeader>
             <div className="px-4 pb-4 space-y-3">
               {giver.email && (
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-red-50 dark:bg-red-950/20">
-                  <div className="flex items-center justify-center size-10 rounded-full bg-red-100 dark:bg-red-900/40 flex-shrink-0">
-                    <Mail className="size-5 text-red-500 dark:text-red-400" />
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-muted">
+                  <div className="size-10 rounded-full bg-[#FBE4E4] flex items-center justify-center">
+                    <Mail className="size-5 text-[#D66B6B]" />
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs text-muted-foreground">Email</span>
-                    <span className="text-sm font-medium text-foreground">{giver.email}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">Email</p>
+                    <p className="text-sm font-medium text-foreground">{giver.email}</p>
                   </div>
                 </div>
               )}
               {giver.agency && (
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-orange-50 dark:bg-orange-950/20">
-                  <div className="flex items-center justify-center size-10 rounded-full bg-orange-100 dark:bg-orange-900/40 flex-shrink-0">
-                    <Building2 className="size-5 text-orange-500 dark:text-orange-400" />
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-muted">
+                  <div className="size-10 rounded-full bg-[#FFEFDE] flex items-center justify-center">
+                    <Building2 className="size-5 text-[#C47D52]" />
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs text-muted-foreground">Agency</span>
-                    <span className="text-sm font-medium text-foreground">{giver.agency}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">Agency</p>
+                    <p className="text-sm font-medium text-foreground">{giver.agency}</p>
                   </div>
                 </div>
               )}
               {giver.office_floor && (
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-teal-50 dark:bg-teal-950/20">
-                  <div className="flex items-center justify-center size-10 rounded-full bg-teal-100 dark:bg-teal-900/40 flex-shrink-0">
-                    <Layers className="size-5 text-teal-600 dark:text-teal-400" />
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-muted">
+                  <div className="size-10 rounded-full bg-[#E1F2F1] flex items-center justify-center">
+                    <Layers className="size-5 text-[#4D9B93]" />
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs text-muted-foreground">Office Floor</span>
-                    <span className="text-sm font-medium text-foreground">{giver.office_floor}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">Office Floor</p>
+                    <p className="text-sm font-medium text-foreground">{giver.office_floor}</p>
                   </div>
                 </div>
               )}
@@ -252,7 +252,7 @@ function ListingCard({
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-xs text-primary font-medium">
-              {listing.quantity_remaining}/{listing.quantity} left
+              {listing.quantity_remaining} left
             </span>
             {chopersCount > 0 && (
               <button
@@ -601,43 +601,43 @@ function ProfileEditDrawer({
           <DrawerTitle className="text-lg">Edit Profile</DrawerTitle>
           <DrawerDescription>Update your profile details</DrawerDescription>
         </DrawerHeader>
-        <div className="px-4 pb-4 space-y-5 overflow-y-auto">
+        <div className="px-4 pb-4 space-y-3 overflow-y-auto">
           {/* Email - read only */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground flex items-center gap-2">
-              <Mail className="size-4" />
-              Email
-            </label>
-            <div className="p-3 bg-muted rounded-xl">
-              <span className="text-sm text-foreground">{user?.email || '—'}</span>
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-muted">
+            <div className="size-10 rounded-full bg-[#FBE4E4] flex items-center justify-center">
+              <Mail className="size-5 text-[#D66B6B]" />
             </div>
-            <p className="text-xs text-muted-foreground">Email info from Techpass</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-muted-foreground">Email</p>
+              <p className="text-sm font-medium text-foreground">{user?.email || '—'}</p>
+            </div>
           </div>
 
           {/* Agency - read only */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground flex items-center gap-2">
-              <Building2 className="size-4" />
-              Agency
-            </label>
-            <div className="p-3 bg-muted rounded-xl">
-              <span className="text-sm text-foreground">{user?.agency || '—'}</span>
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-muted">
+            <div className="size-10 rounded-full bg-[#FFEFDE] flex items-center justify-center">
+              <Building2 className="size-5 text-[#C47D52]" />
             </div>
-            <p className="text-xs text-muted-foreground">Agency info from Techpass</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-muted-foreground">Agency</p>
+              <p className="text-sm font-medium text-foreground">{user?.agency || '—'}</p>
+            </div>
           </div>
 
           {/* Office Floor - optional free text */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground flex items-center gap-2">
-              <Layers className="size-4" />
-              Office Floor <span className="text-muted-foreground font-normal">(optional)</span>
-            </label>
-            <Input
-              value={officeFloor}
-              onChange={(e) => setOfficeFloor(e.target.value)}
-              placeholder="e.g. Level 7, Pantry"
-              className="h-11 rounded-xl"
-            />
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-muted">
+            <div className="size-10 rounded-full bg-[#E1F2F1] flex items-center justify-center">
+              <Layers className="size-5 text-[#4D9B93]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-muted-foreground">Office Floor</p>
+              <Input
+                value={officeFloor}
+                onChange={(e) => setOfficeFloor(e.target.value)}
+                placeholder="e.g. Level 7, Pantry"
+                className="h-auto min-h-0 border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0 text-sm font-medium text-foreground placeholder:text-muted-foreground"
+              />
+            </div>
           </div>
 
           {/* Avatar picker */}
