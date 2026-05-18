@@ -107,7 +107,7 @@ export function InstallPrompt() {
           <div className="flex items-center gap-2">
             <Smartphone className="size-5 text-primary" />
             <div>
-              <h2 className="font-semibold text-foreground">Install Chope & Take</h2>
+              <h2 className="font-semibold text-foreground">Install Chope</h2>
               <p className="text-sm text-muted-foreground">
                 Add to your home screen for quick access to lobangs.
               </p>

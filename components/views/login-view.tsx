@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Gift, ArrowRight } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowRight } from 'lucide-react'
 import { getUserByEmail } from '@/lib/db'
 
 interface LoginViewProps {
@@ -59,16 +60,18 @@ export function LoginView({ onLogin }: LoginViewProps) {
       {/* Header area with branding */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-8">
         {/* Logo */}
-        <div className="flex items-center justify-center size-20 rounded-2xl bg-primary mb-6">
-          <Gift className="size-10 text-primary-foreground" />
-        </div>
+        <Image
+          src="/images/chopehomelogo.png"
+          alt="Chope"
+          width={80}
+          height={80}
+          className="mb-6 h-30 w-60 object-contain"
+          priority
+        />
         
         {/* App name and tagline */}
-        <h1 className="text-3xl font-bold text-foreground text-center">
-          Chope & Take
-        </h1>
         <p className="text-muted-foreground text-center mt-2 max-w-xs text-balance">
-          Share your extras with colleagues. One person&apos;s clutter is another&apos;s treasure!
+          Share your extras with colleagues. Chope your lobang today!
         </p>
       </div>
       
