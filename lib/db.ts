@@ -297,6 +297,22 @@ export async function createChope(
 ): Promise<Chope | null> {
   const supabase = createClient()
 
+  const { data: listing, error: listingError } = await supabase
+    .from('listings')
+    .select('giver_id')
+    .eq('id', listingId)
+    .single()
+
+  if (listingError || !listing) {
+    console.error('Error fetching listing for chope:', listingError)
+    return null
+  }
+
+  if (listing.giver_id === userId) {
+    console.error('Cannot chope your own listing')
+    return null
+  }
+
   const { data, error } = await supabase
     .from('chopes')
     .insert([

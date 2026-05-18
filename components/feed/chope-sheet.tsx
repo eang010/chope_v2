@@ -26,6 +26,11 @@ interface ChopeSheetProps {
   onChopeSuccess?: (listingId: string, newQuantityRemaining: number) => void
 }
 
+function getListingGiverId(listing: Listing | DBListing): string | undefined {
+  if ('giver_id' in listing) return listing.giver_id
+  return listing.giver?.id
+}
+
 export function ChopeSheet({ listing, userId, trigger, onChopeSuccess }: ChopeSheetProps) {
   const [message, setMessage] = useState('')
   const [quantity, setQuantity] = useState(1)
@@ -39,7 +44,13 @@ export function ChopeSheet({ listing, userId, trigger, onChopeSuccess }: ChopeSh
   const media = isDBListing ? listing.media : listing.media
   
   const isFullyChoped = quantityRemaining <= 0
+  const isOwnListing = getListingGiverId(listing) === userId
   const maxQuantity = quantityRemaining
+
+  const disabledButtonClass = cn(
+    'w-full rounded-xl font-semibold',
+    trigger ? 'h-9' : 'h-12 text-base'
+  )
 
   const incrementQuantity = () => {
     if (quantity < maxQuantity) {
@@ -54,7 +65,7 @@ export function ChopeSheet({ listing, userId, trigger, onChopeSuccess }: ChopeSh
   }
   
   const handleSubmit = async () => {
-    if (isFullyChoped) return
+    if (isFullyChoped || isOwnListing) return
 
     setIsSubmitting(true)
     
@@ -93,13 +104,23 @@ export function ChopeSheet({ listing, userId, trigger, onChopeSuccess }: ChopeSh
       <Button
         disabled
         size={trigger ? 'sm' : 'default'}
-        className={cn(
-          'w-full rounded-xl font-semibold',
-          trigger ? 'h-9' : 'h-12 text-base'
-        )}
+        className={disabledButtonClass}
         variant="secondary"
       >
         Fully choped
+      </Button>
+    )
+  }
+
+  if (isOwnListing) {
+    return (
+      <Button
+        disabled
+        size={trigger ? 'sm' : 'default'}
+        className={disabledButtonClass}
+        variant="secondary"
+      >
+        Your listing
       </Button>
     )
   }
