@@ -50,6 +50,8 @@ const avatarSeeds = [
   { value: 'penguin', label: 'Penguin' },
 ]
 
+const CHOPES_PREVIEW_LIMIT = 3
+
 const locations = [
   'Level 5, Lobby', 'Level 5, Pantry',
   'Level 6, Lobby', 'Level 6, Pantry',
@@ -186,6 +188,52 @@ function ChopeCard({ chope, onUnchope }: { chope: DBChope; onUnchope?: (chopeId:
         </Drawer>
       )}
     </>
+  )
+}
+
+// ----- MyChopesDrawer -----
+
+function MyChopesDrawer({
+  chopes,
+  open,
+  onOpenChange,
+  onUnchope,
+}: {
+  chopes: DBChope[]
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onUnchope: (chopeId: string) => void
+}) {
+  return (
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="bg-card max-h-[90vh]">
+        <DrawerHeader className="text-left">
+          <DrawerTitle className="flex items-center gap-2">
+            <Package className="size-5 text-primary" />
+            My Chopes
+          </DrawerTitle>
+          <DrawerDescription>
+            {chopes.length} item{chopes.length === 1 ? '' : 's'} you&apos;ve choped
+          </DrawerDescription>
+        </DrawerHeader>
+        <div className="px-4 pb-4 space-y-2 overflow-y-auto max-h-[60vh]">
+          {chopes.map((chope) => (
+            <ChopeCard
+              key={chope.id}
+              chope={chope}
+              onUnchope={onUnchope}
+            />
+          ))}
+        </div>
+        <DrawerFooter>
+          <DrawerClose asChild>
+            <Button variant="ghost" className="w-full h-11 rounded-xl">
+              Close
+            </Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   )
 }
 
@@ -919,6 +967,7 @@ export function MyStuffView({ userId }: { userId: string }) {
   const [activeListings, setActiveListings] = useState<DBListingWithChopes[]>([])
   const [archivedListings, setArchivedListings] = useState<DBListingWithChopes[]>([])
   const [isArchivedDrawerOpen, setIsArchivedDrawerOpen] = useState(false)
+  const [isChopesDrawerOpen, setIsChopesDrawerOpen] = useState(false)
 
   // Edit drawer state
   const [editingListing, setEditingListing] = useState<DBListingWithChopes | null>(null)
@@ -990,6 +1039,14 @@ export function MyStuffView({ userId }: { userId: string }) {
     setArchivedListings(prev => prev.filter(l => l.id !== listing.id))
     setActiveListings(prev => [{ ...listing, is_archived: false }, ...prev])
   }
+
+  const handleUnchope = (chopeId: string) => {
+    setChopes((prev) => prev.filter((c) => c.id !== chopeId))
+    setChopedCount((prev) => Math.max(0, prev - 1))
+  }
+
+  const previewChopes = chopes.slice(0, CHOPES_PREVIEW_LIMIT)
+  const moreChopesCount = Math.max(0, chopes.length - CHOPES_PREVIEW_LIMIT)
 
   return (
     <div className="space-y-6 pt-4 pb-8">
@@ -1063,15 +1120,30 @@ export function MyStuffView({ userId }: { userId: string }) {
             <p className="text-sm text-muted-foreground mt-1">Start browsing and chope some items!</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {chopes.map((chope) => (
-              <ChopeCard
-                key={chope.id}
-                chope={chope}
-                onUnchope={(chopeId) => setChopes(prev => prev.filter(c => c.id !== chopeId))}
-              />
-            ))}
-          </div>
+          <>
+            <div className="space-y-2">
+              {previewChopes.map((chope) => (
+                <ChopeCard
+                  key={chope.id}
+                  chope={chope}
+                  onUnchope={handleUnchope}
+                />
+              ))}
+            </div>
+            {moreChopesCount > 0 && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsChopesDrawerOpen(true)}
+                className="w-full h-12 rounded-xl justify-between px-4"
+              >
+                <span className="font-medium text-muted-foreground">View more</span>
+                <Badge variant="secondary" className="bg-muted">
+                  {moreChopesCount}
+                </Badge>
+              </Button>
+            )}
+          </>
         )}
       </section>
 
@@ -1122,6 +1194,13 @@ export function MyStuffView({ userId }: { userId: string }) {
           </Button>
         )}
       </section>
+
+      <MyChopesDrawer
+        chopes={chopes}
+        open={isChopesDrawerOpen}
+        onOpenChange={setIsChopesDrawerOpen}
+        onUnchope={handleUnchope}
+      />
 
       <ArchivedListingsDrawer
         listings={archivedListings}
