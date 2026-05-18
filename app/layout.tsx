@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { InstallPrompt } from '@/components/pwa/install-prompt'
+import { SerwistProviderWrapper } from '@/components/pwa/serwist-provider'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -10,6 +12,15 @@ export const metadata: Metadata = {
   title: 'Chope & Take - Give Away Freely, Collect Happily',
   description: 'Singapore&apos;s community app for giving away and collecting free items. Chope your lobang today!',
   generator: 'v0.app',
+  applicationName: 'Chope',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Chope',
+  },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
     icon: [
       {
@@ -45,7 +56,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-background">
       <body className="font-sans antialiased">
-        {children}
+        <SerwistProviderWrapper>
+          {children}
+          <InstallPrompt />
+        </SerwistProviderWrapper>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
