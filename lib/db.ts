@@ -372,6 +372,69 @@ export async function updateListingQuantity(listingId: string, newQuantity: numb
   return true
 }
 
+export type ListingUpdateFields = Pick<
+  Listing,
+  'title' | 'description' | 'location' | 'quantity' | 'quantity_remaining'
+>
+
+export async function updateListing(
+  listingId: string,
+  updates: ListingUpdateFields
+): Promise<Listing | null> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('listings')
+    .update(updates)
+    .eq('id', listingId)
+    .select()
+    .single()
+
+  if (error || !data) {
+    console.error('Error updating listing:', error)
+    return null
+  }
+
+  return data
+}
+
+export async function replaceListingMedia(
+  listingId: string,
+  media: Omit<ListingMedia, 'id' | 'listing_id' | 'created_at'>[]
+): Promise<ListingMedia[] | null> {
+  const supabase = createClient()
+
+  const { error: deleteError } = await supabase
+    .from('listing_media')
+    .delete()
+    .eq('listing_id', listingId)
+
+  if (deleteError) {
+    console.error('Error deleting listing media:', deleteError)
+    return null
+  }
+
+  if (media.length === 0) {
+    return []
+  }
+
+  const mediaWithListingId = media.map((m) => ({
+    ...m,
+    listing_id: listingId,
+  }))
+
+  const { data, error: insertError } = await supabase
+    .from('listing_media')
+    .insert(mediaWithListingId)
+    .select()
+
+  if (insertError || !data) {
+    console.error('Error inserting listing media:', insertError)
+    return null
+  }
+
+  return data
+}
+
 export async function updateUserProfile(
   userId: string,
   updates: Partial<Pick<User, 'office_floor' | 'avatar_seed'>>

@@ -30,12 +30,13 @@ import {
 import { cn } from '@/lib/utils'
 import {
   User, Gift, Package, Settings, MapPin, Clock, X,
-  ChevronDown, Edit3, Archive, ArchiveRestore, Trash2, MoreHorizontal, Check, Users, Mail, Building2, Layers
+  ChevronDown, Edit3, Archive, ArchiveRestore, Trash2, MoreHorizontal, Check, Users, Mail, Building2, Layers, ImagePlus
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import {
   getUserById, getChopesByUserId, getGivenCount, getChopedCount,
-  updateUserProfile, getListingsByUserId, deleteListing, deleteChope
+  updateUserProfile, getListingsByUserId, deleteListing, deleteChope,
+  uploadListingImage, updateListing, replaceListingMedia,
 } from '@/lib/db'
 import type { User as DBUser, Chope as DBChope, Listing as DBListing } from '@/lib/db'
 
@@ -222,7 +223,7 @@ function ListingCard({
 
   const chopersCount = listing.chopes?.length || 0
   const hasBeenChoped = chopersCount > 0 || listing.quantity_remaining < listing.quantity
-  const canEdit = !hasBeenChoped && !listing.is_archived
+  const canEdit = !listing.is_archived
   const endsAt = listing.ends_at ? new Date(listing.ends_at) : null
 
   return (
@@ -325,11 +326,6 @@ function ListingCard({
                 <Edit3 className="size-5 mr-3" />
                 Edit Listing
               </Button>
-            )}
-            {!canEdit && !listing.is_archived && (
-              <p className="text-sm text-muted-foreground px-2 pb-2">
-                Cannot edit — item has been choped
-              </p>
             )}
             {!listing.is_archived && (
               <Button
@@ -450,6 +446,10 @@ function ArchivedListingCard({
 
 // ----- EditListingDrawer -----
 
+type EditImage =
+  | { kind: 'existing'; id: string; url: string }
+  | { kind: 'new'; file: File; preview: string }
+
 function EditListingDrawer({
   listing,
   open,
@@ -464,30 +464,132 @@ function EditListingDrawer({
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [location, setLocation] = useState('')
+  const [quantity, setQuantity] = useState(1)
+  const [images, setImages] = useState<EditImage[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  const chopedCount = listing
+    ? listing.quantity - listing.quantity_remaining
+    : 0
+  const minQuantity = Math.max(chopedCount, 1)
+
   useEffect(() => {
-    if (listing) {
-      setTitle(listing.title)
-      setDescription(listing.description || '')
-      setLocation(listing.location)
-    }
+    if (!listing) return
+    setTitle(listing.title)
+    setDescription(listing.description || '')
+    setLocation(listing.location)
+    setQuantity(listing.quantity)
+    setImages(
+      (listing.media || [])
+        .sort((a, b) => a.display_order - b.display_order)
+        .map((m) => ({ kind: 'existing' as const, id: m.id, url: m.url }))
+    )
   }, [listing])
 
-  const handleSave = () => {
+  useEffect(() => {
+    return () => {
+      images.forEach((img) => {
+        if (img.kind === 'new') URL.revokeObjectURL(img.preview)
+      })
+    }
+  }, [images])
+
+  const removeImage = (index: number) => {
+    setImages((prev) => {
+      const img = prev[index]
+      if (img?.kind === 'new') URL.revokeObjectURL(img.preview)
+      return prev.filter((_, i) => i !== index)
+    })
+  }
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files) return
+    const newFiles = Array.from(files).slice(0, 5 - images.length)
+    const newImages: EditImage[] = newFiles.map((file) => ({
+      kind: 'new',
+      file,
+      preview: URL.createObjectURL(file),
+    }))
+    setImages((prev) => [...prev, ...newImages])
+    e.target.value = ''
+  }
+
+  const handleSave = async () => {
     if (!listing) return
+    if (!title.trim() || !location || images.length === 0) {
+      alert('Please fill in title, location, and at least one photo.')
+      return
+    }
+    if (quantity < minQuantity) {
+      alert(`Quantity must be at least ${minQuantity} (${chopedCount} already choped).`)
+      return
+    }
+
     setIsSaving(true)
-    setTimeout(() => {
-      onSave({ ...listing, title, description, location })
-      setIsSaving(false)
+    try {
+      const mediaUrls: { type: 'image'; url: string; display_order: number }[] = []
+
+      for (let i = 0; i < images.length; i++) {
+        const img = images[i]
+        if (img.kind === 'existing') {
+          mediaUrls.push({ type: 'image', url: img.url, display_order: i })
+        } else {
+          const url = await uploadListingImage(img.file)
+          if (!url) {
+            alert('Failed to upload one or more images. Please try again.')
+            setIsSaving(false)
+            return
+          }
+          mediaUrls.push({ type: 'image', url, display_order: i })
+        }
+      }
+
+      const quantityRemaining = quantity - chopedCount
+
+      const updatedListing = await updateListing(listing.id, {
+        title: title.trim(),
+        description: description.trim() || null,
+        location,
+        quantity,
+        quantity_remaining: quantityRemaining,
+      })
+
+      if (!updatedListing) {
+        alert('Failed to update listing. Please try again.')
+        setIsSaving(false)
+        return
+      }
+
+      const newMedia = await replaceListingMedia(listing.id, mediaUrls)
+      if (newMedia === null) {
+        alert('Failed to update photos. Please try again.')
+        setIsSaving(false)
+        return
+      }
+
+      onSave({
+        ...listing,
+        ...updatedListing,
+        media: newMedia,
+      })
+
       setSaved(true)
       setTimeout(() => {
         setSaved(false)
         onOpenChange(false)
       }, 1000)
-    }, 500)
+    } catch (error) {
+      console.error('Error saving listing:', error)
+      alert('Error saving listing. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
   }
+
+  const canSave =
+    title.trim() && location && images.length > 0 && quantity >= minQuantity
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -496,7 +598,68 @@ function EditListingDrawer({
           <DrawerTitle>Edit Listing</DrawerTitle>
           <DrawerDescription>Make changes to your listing</DrawerDescription>
         </DrawerHeader>
-        <div className="px-4 pb-4 space-y-4 overflow-y-auto">
+        <div className="px-4 pb-4 space-y-4 overflow-y-auto max-h-[60vh]">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
+              Photos <span className="text-destructive">*</span>
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Up to 5 photos. First photo is the cover.
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              {images.map((img, index) => (
+                <div key={index} className="relative size-20 rounded-lg overflow-hidden bg-muted">
+                  <img
+                    src={img.kind === 'existing' ? img.url : img.preview}
+                    alt={`Photo ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute top-1 right-1 size-5 rounded-full bg-card/90 flex items-center justify-center"
+                  >
+                    <X className="size-3" />
+                  </button>
+                  {index === 0 && (
+                    <span className="absolute bottom-0 left-0 right-0 bg-primary/90 text-primary-foreground text-[10px] text-center py-0.5">
+                      Cover
+                    </span>
+                  )}
+                </div>
+              ))}
+              {images.length < 5 && (
+                <label className="size-20 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors cursor-pointer">
+                  <ImagePlus className="size-6 mb-1" />
+                  <span className="text-xs">Add</span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Quantity available</label>
+            <Input
+              type="number"
+              min={minQuantity}
+              value={quantity}
+              onChange={(e) => setQuantity(Math.max(minQuantity, parseInt(e.target.value, 10) || minQuantity))}
+              className="h-11 rounded-xl"
+            />
+            {chopedCount > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {chopedCount} already choped — minimum quantity is {chopedCount}.
+              </p>
+            )}
+          </div>
+
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Title</label>
             <Input
@@ -532,7 +695,7 @@ function EditListingDrawer({
         <DrawerFooter>
           <Button
             onClick={handleSave}
-            disabled={isSaving || saved || !title.trim()}
+            disabled={isSaving || saved || !canSave}
             className="w-full h-12 rounded-xl bg-primary text-primary-foreground"
           >
             {saved ? (
@@ -547,6 +710,7 @@ function EditListingDrawer({
     </Drawer>
   )
 }
+
 
 // ----- ProfileEditDrawer -----
 
