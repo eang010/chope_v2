@@ -173,7 +173,7 @@ export function ChopeSheet({ listing, userId, trigger, onChopeSuccess }: ChopeSh
                 />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-foreground truncate">{listing.title}</p>
-                  <p className="text-sm text-muted-foreground">{listing.location}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-3">{listing.location}</p>
                   <p className="text-xs text-primary font-medium">
                     {quantityRemaining} left
                   </p>

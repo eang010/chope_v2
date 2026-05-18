@@ -23,11 +23,6 @@ const conditions = [
   { value: 'well-loved', label: 'Well Loved', description: 'Shows wear but still has life left' },
 ]
 
-const locations = Array.from({ length: 12 }, (_, i) => i + 2).flatMap((level) => [
-  `Level ${level}, Pantry`,
-  `Level ${level}, Lobby`,
-])
-
 interface GiveAwayViewProps {
   userId: string
   onNavigate: (nav: 'home') => void
@@ -40,10 +35,7 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState('')
   const [condition, setCondition] = useState('')
-  const [location, setLocation] = useState(() => {
-    // Pre-populate with user's office floor if available
-    return ''
-  })
+  const [location, setLocation] = useState('')
   const [hasEndDate, setHasEndDate] = useState(false)
   const [endDate, setEndDate] = useState(() => {
     const today = new Date()
@@ -54,7 +46,8 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async () => {
-    if (!title || !category || !condition || !location || images.length === 0) {
+    const trimmedLocation = location.trim()
+    if (!title || !category || !condition || !trimmedLocation || images.length === 0) {
       alert('Please fill in all required fields')
       return
     }
@@ -85,7 +78,7 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
         description,
         category,
         condition,
-        location,
+        location: trimmedLocation,
         quantity: 1,
         quantity_remaining: 1,
         ends_at: endsAt,
@@ -138,7 +131,8 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
     setImagePreviews(newPreviews)
   }
 
-  const isValid = title && description && category && condition && location && images.length > 0
+  const isValid =
+    title && description && category && condition && location.trim() && images.length > 0
 
   if (isSubmitted) {
     return (
@@ -287,22 +281,24 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
           </div>
         </div>
 
-        {/* Location */}
+        {/* Collection instructions */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground flex items-center gap-2">
+          <label htmlFor="collection-instructions" className="text-sm font-medium text-foreground flex items-center gap-2">
             <MapPin className="size-4" />
-            Collection Area <span className="text-destructive">*</span>
+            Collection instructions <span className="text-destructive">*</span>
           </label>
-          <Select value={location} onValueChange={setLocation}>
-            <SelectTrigger className="w-full h-11">
-              <SelectValue placeholder="Select your area" />
-            </SelectTrigger>
-            <SelectContent>
-              {locations.map((loc) => (
-                <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <p className="text-xs text-muted-foreground">
+            Where and how to collect (time, contact, etc.)
+          </p>
+          <Textarea
+            id="collection-instructions"
+            placeholder="e.g. Level 7 pantry, weekdays after 3pm - message me on Teams first"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            maxLength={250}
+            className="min-h-[80px]"
+          />
+          <p className="text-xs text-muted-foreground text-right">{location.length}/250</p>
         </div>
 
         {/* End date toggle */}

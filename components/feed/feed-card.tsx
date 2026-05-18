@@ -85,7 +85,7 @@ export function FeedCard({ listing, userId, onChopeSuccess }: FeedCardProps) {
             {/* Location */}
             <div className="flex items-center gap-1 text-muted-foreground">
               <MapPin className="size-4" />
-              <span>{listing.location}</span>
+              <span className="line-clamp-2">{listing.location}</span>
             </div>
             
             {/* Quantity remaining */}

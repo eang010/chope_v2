@@ -52,17 +52,6 @@ const avatarSeeds = [
 
 const CHOPES_PREVIEW_LIMIT = 3
 
-const locations = [
-  'Level 5, Lobby', 'Level 5, Pantry',
-  'Level 6, Lobby', 'Level 6, Pantry',
-  'Level 7, Lobby', 'Level 7, Pantry', 'Level 7, Hot Desk Area',
-  'Level 8, Lobby', 'Level 8, Reception', 'Level 8, Pantry',
-  'Level 9, Lobby', 'Level 9, Hot Desk Area', 'Level 9, Pantry',
-  'Level 10, Lobby', 'Level 10, Pantry',
-  'Level 11, Lobby', 'Level 11, Near Lift', 'Level 11, Pantry',
-  'Level 12, Lobby', 'Level 12, Pantry',
-]
-
 function isActiveChope(chope: DBChope): boolean {
   return Boolean(chope.listing && !chope.listing.is_archived)
 }
@@ -692,8 +681,9 @@ function EditListingDrawer({
 
   const handleSave = async () => {
     if (!listing) return
-    if (!title.trim() || !category || !location || images.length === 0) {
-      alert('Please fill in title, category, location, and at least one photo.')
+    const trimmedLocation = location.trim()
+    if (!title.trim() || !category || !trimmedLocation || images.length === 0) {
+      alert('Please fill in title, category, collection instructions, and at least one photo.')
       return
     }
     if (quantity < minQuantity) {
@@ -726,7 +716,7 @@ function EditListingDrawer({
         title: title.trim(),
         description: description.trim() || null,
         category,
-        location,
+        location: trimmedLocation,
         quantity,
         quantity_remaining: quantityRemaining,
       })
@@ -764,7 +754,7 @@ function EditListingDrawer({
   }
 
   const canSave =
-    title.trim() && category && location && images.length > 0 && quantity >= minQuantity
+    title.trim() && category && location.trim() && images.length > 0 && quantity >= minQuantity
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -867,17 +857,22 @@ function EditListingDrawer({
             </Select>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Collection Location</label>
-            <Select value={location} onValueChange={setLocation}>
-              <SelectTrigger className="h-11 rounded-xl">
-                <SelectValue placeholder="Where to collect?" />
-              </SelectTrigger>
-              <SelectContent>
-                {locations.map((loc) => (
-                  <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <label htmlFor="edit-collection-instructions" className="text-sm font-medium text-foreground flex items-center gap-2">
+              <MapPin className="size-4" />
+              Collection instructions
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Where and how to collect (time, contact, etc.)
+            </p>
+            <Textarea
+              id="edit-collection-instructions"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="e.g. Level 7 pantry, weekdays after 3pm - message me on Teams first"
+              maxLength={250}
+              className="min-h-[80px] rounded-xl resize-none"
+            />
+            <p className="text-xs text-muted-foreground text-right">{location.length}/250</p>
           </div>
         </div>
         <DrawerFooter>
