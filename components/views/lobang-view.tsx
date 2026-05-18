@@ -35,16 +35,24 @@ export function LobangView({ userId, urgentOnly = false, onClearUrgentFilter }: 
 
     loadListings()
   }, [])
-  
-  // Only show listings with remaining quantity (not fully choped)
-  let availableListings = listings.filter(l => l.quantity_remaining > 0)
-  
-  // If urgentOnly, filter to items ending within 24 hours
+
+  const handleChopeSuccess = (listingId: string, newQuantityRemaining: number) => {
+    setListings((prev) =>
+      prev.map((l) =>
+        l.id === listingId ? { ...l, quantity_remaining: newQuantityRemaining } : l
+      )
+    )
+  }
+
+  // Non-archived listings from getAllListings; include fully choped for visibility
+  let browseListings = listings
+
+  // If urgentOnly, show items with an end date, not yet ended, soonest first
   if (urgentOnly) {
-    availableListings = availableListings.filter((l) => {
+    browseListings = browseListings.filter((l) => {
       if (!l.ends_at) return false
       const hoursRemaining = differenceInHours(new Date(l.ends_at), now)
-      return hoursRemaining >= 0 && hoursRemaining <= 24
+      return hoursRemaining >= 0
     }).sort((a, b) => {
       const aTime = a.ends_at ? new Date(a.ends_at).getTime() : 0
       const bTime = b.ends_at ? new Date(b.ends_at).getTime() : 0
@@ -53,8 +61,8 @@ export function LobangView({ userId, urgentOnly = false, onClearUrgentFilter }: 
   }
   
   const filteredListings = activeCategory === 'All'
-    ? availableListings
-    : availableListings.filter((l) => l.category === activeCategory)
+    ? browseListings
+    : browseListings.filter((l) => l.category === activeCategory)
 
   return (
     <div className="space-y-4 pt-4">
@@ -121,7 +129,12 @@ export function LobangView({ userId, urgentOnly = false, onClearUrgentFilter }: 
           </div>
         ) : (
           filteredListings.map((listing) => (
-            <FeedCard key={listing.id} listing={listing} userId={userId} />
+            <FeedCard
+              key={listing.id}
+              listing={listing}
+              userId={userId}
+              onChopeSuccess={handleChopeSuccess}
+            />
           ))
         )}
       </div>

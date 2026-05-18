@@ -23,7 +23,7 @@ interface ChopeSheetProps {
   listing: Listing | DBListing
   userId: string
   trigger?: React.ReactNode
-  onChopeSuccess?: () => void
+  onChopeSuccess?: (listingId: string, newQuantityRemaining: number) => void
 }
 
 export function ChopeSheet({ listing, userId, trigger, onChopeSuccess }: ChopeSheetProps) {
@@ -38,8 +38,9 @@ export function ChopeSheet({ listing, userId, trigger, onChopeSuccess }: ChopeSh
   const quantityRemaining = isDBListing ? listing.quantity_remaining : listing.quantityRemaining
   const media = isDBListing ? listing.media : listing.media
   
+  const isFullyChoped = quantityRemaining <= 0
   const maxQuantity = quantityRemaining
-  
+
   const incrementQuantity = () => {
     if (quantity < maxQuantity) {
       setQuantity(q => q + 1)
@@ -53,19 +54,26 @@ export function ChopeSheet({ listing, userId, trigger, onChopeSuccess }: ChopeSh
   }
   
   const handleSubmit = async () => {
+    if (isFullyChoped) return
+
     setIsSubmitting(true)
     
     // Create the chope record in database
     const chope = await createChope(userId, listing.id, message || null, quantity)
     
     if (chope) {
-      // Update the listing's quantity_remaining
-      await updateListingQuantity(listing.id, quantityRemaining - quantity)
-      
+      const newQty = quantityRemaining - quantity
+      const updated = await updateListingQuantity(listing.id, newQty)
+
+      if (!updated) {
+        setIsSubmitting(false)
+        return
+      }
+
       setIsSubmitted(true)
       setTimeout(() => {
         setIsOpen(false)
-        onChopeSuccess?.()
+        onChopeSuccess?.(listing.id, newQty)
         // Reset after drawer closes
         setTimeout(() => {
           setIsSubmitted(false)
@@ -80,6 +88,22 @@ export function ChopeSheet({ listing, userId, trigger, onChopeSuccess }: ChopeSh
     }
   }
   
+  if (isFullyChoped) {
+    return (
+      <Button
+        disabled
+        size={trigger ? 'sm' : 'default'}
+        className={cn(
+          'w-full rounded-xl font-semibold',
+          trigger ? 'h-9' : 'h-12 text-base'
+        )}
+        variant="secondary"
+      >
+        Fully choped
+      </Button>
+    )
+  }
+
   return (
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
       <DrawerTrigger asChild>

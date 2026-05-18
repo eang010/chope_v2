@@ -7,12 +7,13 @@ import { MediaCarousel } from './media-carousel'
 import { GiverBadge } from './giver-badge'
 import { CountdownTimer } from './countdown-timer'
 import { ChopeSheet } from './chope-sheet'
+import { cn } from '@/lib/utils'
 import { MapPin, Package } from 'lucide-react'
 
 interface FeedCardProps {
   listing: Listing | DBListing
   userId: string
-  onChopeSuccess?: () => void
+  onChopeSuccess?: (listingId: string, newQuantityRemaining: number) => void
 }
 
 const conditionLabels: Record<Listing['condition'], string> = {
@@ -29,7 +30,8 @@ export function FeedCard({ listing, userId, onChopeSuccess }: FeedCardProps) {
   const media = isDBListing ? listing.media : (listing as Listing).media
   const endsAt = isDBListing ? (listing.ends_at ? new Date(listing.ends_at) : null) : (listing as Listing).endsAt
   const quantityRemaining = isDBListing ? listing.quantity_remaining : (listing as Listing).quantityRemaining
-  
+  const isFullyChoped = quantityRemaining <= 0
+
   return (
     <article className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
       {/* Media section with overlays */}
@@ -87,9 +89,14 @@ export function FeedCard({ listing, userId, onChopeSuccess }: FeedCardProps) {
             </div>
             
             {/* Quantity remaining */}
-            <div className="flex items-center gap-1 text-primary font-medium">
+            <div
+              className={cn(
+                'flex items-center gap-1 font-medium',
+                isFullyChoped ? 'text-muted-foreground' : 'text-primary'
+              )}
+            >
               <Package className="size-4" />
-              <span>{quantityRemaining} left</span>
+              <span>{isFullyChoped ? 'Fully choped' : `${quantityRemaining} left`}</span>
             </div>
           </div>
           

@@ -25,7 +25,15 @@ interface HomeViewProps {
   onLogout: () => void
 }
 
-function HotLobangCard({ listing, userId }: { listing: Listing; userId: string }) {
+function HotLobangCard({
+  listing,
+  userId,
+  onChopeSuccess,
+}: {
+  listing: Listing
+  userId: string
+  onChopeSuccess: (listingId: string, newQuantityRemaining: number) => void
+}) {
   return (
     <div className="min-w-[280px] bg-card border border-border rounded-xl overflow-hidden">
       <div className="relative">
@@ -52,6 +60,7 @@ function HotLobangCard({ listing, userId }: { listing: Listing; userId: string }
         <ChopeSheet
           listing={listing as any}
           userId={userId}
+          onChopeSuccess={onChopeSuccess}
           trigger={
             <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
               Chope!
@@ -85,13 +94,13 @@ export function HomeView({ userId, onNavigate, onLogout }: HomeViewProps) {
         setGivenCount(given)
         setChopedCount(choped)
 
-        // Filter urgent listings
+        // Listings with an end date, not yet ended, soonest first
         const now = new Date()
         const urgent = listings
           .filter((l) => {
-            if (!l.ends_at || l.quantity_remaining <= 0) return false
+            if (!l.ends_at) return false
             const hoursRemaining = differenceInHours(new Date(l.ends_at), now)
-            return hoursRemaining >= 0 && hoursRemaining <= 24
+            return hoursRemaining >= 0
           })
           .sort((a, b) => {
             const aTime = a.ends_at ? new Date(a.ends_at).getTime() : 0
@@ -110,6 +119,14 @@ export function HomeView({ userId, onNavigate, onLogout }: HomeViewProps) {
 
     loadData()
   }, [userId])
+
+  const handleChopeSuccess = (listingId: string, newQuantityRemaining: number) => {
+    setHotLobangs((prev) =>
+      prev.map((l) =>
+        l.id === listingId ? { ...l, quantity_remaining: newQuantityRemaining } : l
+      )
+    )
+  }
 
   return (
     <div className="space-y-6 pt-4">
@@ -201,7 +218,12 @@ export function HomeView({ userId, onNavigate, onLogout }: HomeViewProps) {
         </div>
         <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
           {hotLobangs.map((listing) => (
-                <HotLobangCard key={listing.id} listing={listing} userId={userId} />
+                <HotLobangCard
+                  key={listing.id}
+                  listing={listing}
+                  userId={userId}
+                  onChopeSuccess={handleChopeSuccess}
+                />
           ))}
         </div>
       </section>
