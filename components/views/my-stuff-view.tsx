@@ -7,11 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
-import {
   Drawer,
   DrawerClose,
   DrawerContent,
@@ -445,6 +440,55 @@ function ArchivedListingCard({
   )
 }
 
+// ----- ArchivedListingsDrawer -----
+
+function ArchivedListingsDrawer({
+  listings,
+  open,
+  onOpenChange,
+  onUnarchive,
+  onDelete,
+}: {
+  listings: DBListingWithChopes[]
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onUnarchive: (listing: DBListingWithChopes) => void
+  onDelete: (listing: DBListingWithChopes) => void
+}) {
+  return (
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="bg-card max-h-[90vh]">
+        <DrawerHeader className="text-left">
+          <DrawerTitle className="flex items-center gap-2">
+            <Archive className="size-5 text-muted-foreground" />
+            Archived Listings
+          </DrawerTitle>
+          <DrawerDescription>
+            {listings.length} listing{listings.length === 1 ? '' : 's'} in your archive
+          </DrawerDescription>
+        </DrawerHeader>
+        <div className="px-4 pb-4 space-y-2 overflow-y-auto max-h-[60vh]">
+          {listings.map((listing) => (
+            <ArchivedListingCard
+              key={listing.id}
+              listing={listing}
+              onUnarchive={() => onUnarchive(listing)}
+              onDelete={() => onDelete(listing)}
+            />
+          ))}
+        </div>
+        <DrawerFooter>
+          <DrawerClose asChild>
+            <Button variant="ghost" className="w-full h-11 rounded-xl">
+              Close
+            </Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
 // ----- EditListingDrawer -----
 
 type EditImage =
@@ -874,7 +918,7 @@ export function MyStuffView({ userId }: { userId: string }) {
   const [chopedCount, setChopedCount] = useState(0)
   const [activeListings, setActiveListings] = useState<DBListingWithChopes[]>([])
   const [archivedListings, setArchivedListings] = useState<DBListingWithChopes[]>([])
-  const [isArchivedOpen, setIsArchivedOpen] = useState(false)
+  const [isArchivedDrawerOpen, setIsArchivedDrawerOpen] = useState(false)
 
   // Edit drawer state
   const [editingListing, setEditingListing] = useState<DBListingWithChopes | null>(null)
@@ -1038,9 +1082,10 @@ export function MyStuffView({ userId }: { userId: string }) {
             <Gift className="size-5 text-success" />
             My Listings
           </h3>
-          <Badge variant="secondary" className="bg-muted">{activeListings.length}</Badge>
+          <Badge variant="secondary" className="bg-muted">
+            {activeListings.length}
+          </Badge>
         </div>
-
         {activeListings.length === 0 ? (
           <div className="text-center py-8 bg-muted/50 rounded-xl">
             <p className="text-muted-foreground">Nothing here leh...</p>
@@ -1060,39 +1105,31 @@ export function MyStuffView({ userId }: { userId: string }) {
             ))}
           </div>
         )}
+        {archivedListings.length > 0 && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsArchivedDrawerOpen(true)}
+            className="w-full h-12 rounded-xl justify-between px-4"
+          >
+            <span className="flex items-center gap-2 font-medium text-muted-foreground">
+              <Archive className="size-5" />
+              View archived
+            </span>
+            <Badge variant="secondary" className="bg-muted">
+              {archivedListings.length}
+            </Badge>
+          </Button>
+        )}
       </section>
 
-      {/* Archived Listings - Collapsible */}
-      {archivedListings.length > 0 && (
-        <section className="px-4">
-          <Collapsible open={isArchivedOpen} onOpenChange={setIsArchivedOpen}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
-              <div className="flex items-center gap-2">
-                <Archive className="size-5 text-muted-foreground" />
-                <span className="font-semibold text-muted-foreground">
-                  Archived ({archivedListings.length})
-                </span>
-              </div>
-              <ChevronDown className={cn(
-                'size-5 text-muted-foreground transition-transform duration-200',
-                isArchivedOpen && 'rotate-180'
-              )} />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-2">
-              <div className="space-y-2">
-                {archivedListings.map((listing) => (
-                  <ArchivedListingCard
-                    key={listing.id}
-                    listing={listing}
-                    onUnarchive={() => handleUnarchive(listing)}
-                    onDelete={() => handleDeleteArchived(listing)}
-                  />
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        </section>
-      )}
+      <ArchivedListingsDrawer
+        listings={archivedListings}
+        open={isArchivedDrawerOpen}
+        onOpenChange={setIsArchivedDrawerOpen}
+        onUnarchive={handleUnarchive}
+        onDelete={handleDeleteArchived}
+      />
 
       {/* Edit Listing Drawer */}
       <EditListingDrawer
