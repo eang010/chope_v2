@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -243,6 +244,13 @@ export function HomeView({ userId, onNavigate, onLogout }: HomeViewProps) {
             <ArrowRight className="size-4 ml-2" />
           </Button>
         </div>
+        <Image
+          src="/images/chope-logo.png"
+          alt="Chope"
+          width={120}
+          height={120}
+          className="mx-auto mt-6 h-24 w-24 object-contain"
+        />
       </section>
 
       {/* Profile Drawer */}

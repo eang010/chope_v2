@@ -61,7 +61,7 @@ export function LoginView({ onLogin }: LoginViewProps) {
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-8">
         {/* Logo */}
         <Image
-          src="/images/chopehomelogo.png"
+          src="/images/chope-logo.png"
           alt="Chope"
           width={80}
           height={80}
@@ -71,7 +71,7 @@ export function LoginView({ onLogin }: LoginViewProps) {
         
         {/* App name and tagline */}
         <p className="text-muted-foreground text-center mt-2 max-w-xs text-balance">
-          Share your extras with colleagues. Chope your lobang today!
+          Give Away Freely, Collect Happily. <br /> Chope your lobang today!
         </p>
       </div>
       

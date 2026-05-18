@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Chope & Take',
     short_name: 'Chope',
     description:
-      "Singapore's community app for giving away and collecting free items. Chope your lobang today!",
+      "Govt's community app where we take the first step to bring about a zero-waste future. Chope your lobang today!",
     start_url: '/',
     display: 'standalone',
     background_color: '#FF6B4A',

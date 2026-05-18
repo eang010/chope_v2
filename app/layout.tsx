@@ -9,9 +9,9 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Chope & Take - Give Away Freely, Collect Happily',
+  title: 'Chope - Give Away Freely, Collect Happily',
   description: 'Singapore&apos;s community app for giving away and collecting free items. Chope your lobang today!',
-  generator: 'v0.app',
+  generator: 'Emily',
   applicationName: 'Chope',
   appleWebApp: {
     capable: true,
@@ -24,19 +24,19 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: '/icon-light-32x32.png',
+        url: '/32.png',
         media: '(prefers-color-scheme: light)',
       },
       {
-        url: '/icon-dark-32x32.png',
+        url: '/32.png',
         media: '(prefers-color-scheme: dark)',
       },
       {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
+        url: 'images/chope-logo.png',
+        type: 'image/png+xml',
       },
     ],
-    apple: '/apple-icon.png',
+    apple: '/180.png',
   },
 }
 
