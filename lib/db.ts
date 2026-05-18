@@ -99,7 +99,43 @@ export async function uploadListingImage(file: File): Promise<string | null> {
 }
 
 // Listings Functions
+export async function archiveExpiredListings(): Promise<void> {
+  const supabase = createClient()
+  const now = new Date().toISOString()
+
+  const { error } = await supabase
+    .from('listings')
+    .update({ is_archived: true })
+    .eq('is_archived', false)
+    .not('ends_at', 'is', null)
+    .lt('ends_at', now)
+
+  if (error) {
+    console.error('Error archiving expired listings:', error)
+  }
+}
+
+export async function setListingArchived(
+  listingId: string,
+  isArchived: boolean
+): Promise<boolean> {
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('listings')
+    .update({ is_archived: isArchived })
+    .eq('id', listingId)
+
+  if (error) {
+    console.error('Error updating listing archive status:', error)
+    return false
+  }
+
+  return true
+}
+
 export async function getAllListings(): Promise<Listing[]> {
+  await archiveExpiredListings()
+
   const supabase = createClient()
   const { data, error } = await supabase
     .from('listings')
@@ -161,6 +197,8 @@ export async function getChopesByUserId(userId: string): Promise<Chope[]> {
 
 // Count Functions
 export async function getGivenCount(userId: string): Promise<number> {
+  await archiveExpiredListings()
+
   const supabase = createClient()
   const { count, error } = await supabase
     .from('listings')
@@ -192,6 +230,8 @@ export async function getChopedCount(userId: string): Promise<number> {
 }
 
 export async function getListingsByUserId(userId: string): Promise<Listing[]> {
+  await archiveExpiredListings()
+
   const supabase = createClient()
   const { data, error } = await supabase
     .from('listings')
@@ -374,7 +414,7 @@ export async function updateListingQuantity(listingId: string, newQuantity: numb
 
 export type ListingUpdateFields = Pick<
   Listing,
-  'title' | 'description' | 'location' | 'quantity' | 'quantity_remaining'
+  'title' | 'description' | 'category' | 'location' | 'quantity' | 'quantity_remaining'
 >
 
 export async function updateListing(

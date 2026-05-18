@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { categories } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
 import {
   User, Gift, Package, Settings, MapPin, Clock, X,
@@ -36,7 +37,7 @@ import { formatDistanceToNow } from 'date-fns'
 import {
   getUserById, getChopesByUserId, getGivenCount, getChopedCount,
   updateUserProfile, getListingsByUserId, deleteListing, deleteChope,
-  uploadListingImage, updateListing, replaceListingMedia,
+  uploadListingImage, updateListing, replaceListingMedia, setListingArchived,
 } from '@/lib/db'
 import type { User as DBUser, Chope as DBChope, Listing as DBListing } from '@/lib/db'
 
@@ -463,6 +464,7 @@ function EditListingDrawer({
 }) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [category, setCategory] = useState('')
   const [location, setLocation] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [images, setImages] = useState<EditImage[]>([])
@@ -478,6 +480,7 @@ function EditListingDrawer({
     if (!listing) return
     setTitle(listing.title)
     setDescription(listing.description || '')
+    setCategory(listing.category)
     setLocation(listing.location)
     setQuantity(listing.quantity)
     setImages(
@@ -518,8 +521,8 @@ function EditListingDrawer({
 
   const handleSave = async () => {
     if (!listing) return
-    if (!title.trim() || !location || images.length === 0) {
-      alert('Please fill in title, location, and at least one photo.')
+    if (!title.trim() || !category || !location || images.length === 0) {
+      alert('Please fill in title, category, location, and at least one photo.')
       return
     }
     if (quantity < minQuantity) {
@@ -551,6 +554,7 @@ function EditListingDrawer({
       const updatedListing = await updateListing(listing.id, {
         title: title.trim(),
         description: description.trim() || null,
+        category,
         location,
         quantity,
         quantity_remaining: quantityRemaining,
@@ -589,7 +593,7 @@ function EditListingDrawer({
   }
 
   const canSave =
-    title.trim() && location && images.length > 0 && quantity >= minQuantity
+    title.trim() && category && location && images.length > 0 && quantity >= minQuantity
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -677,6 +681,19 @@ function EditListingDrawer({
               placeholder="Tell people more about the item..."
               className="min-h-24 rounded-xl resize-none"
             />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Category</label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="h-11 rounded-xl">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.filter((c) => c !== 'All').map((cat) => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Collection Location</label>
@@ -902,7 +919,9 @@ export function MyStuffView({ userId }: { userId: string }) {
     setActiveListings(prev => prev.map(l => l.id === updated.id ? updated : l))
   }
 
-  const handleArchive = (listing: DBListingWithChopes) => {
+  const handleArchive = async (listing: DBListingWithChopes) => {
+    const success = await setListingArchived(listing.id, true)
+    if (!success) return
     setActiveListings(prev => prev.filter(l => l.id !== listing.id))
     setArchivedListings(prev => [{ ...listing, is_archived: true }, ...prev])
   }
@@ -921,7 +940,9 @@ export function MyStuffView({ userId }: { userId: string }) {
     }
   }
 
-  const handleUnarchive = (listing: DBListingWithChopes) => {
+  const handleUnarchive = async (listing: DBListingWithChopes) => {
+    const success = await setListingArchived(listing.id, false)
+    if (!success) return
     setArchivedListings(prev => prev.filter(l => l.id !== listing.id))
     setActiveListings(prev => [{ ...listing, is_archived: false }, ...prev])
   }
