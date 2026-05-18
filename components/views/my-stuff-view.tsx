@@ -26,11 +26,11 @@ import { categories } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
 import {
   User, Gift, Package, Settings, MapPin, Clock, X,
-  ChevronDown, Edit3, Archive, ArchiveRestore, Trash2, MoreHorizontal, Check, Users, Mail, Building2, Layers, ImagePlus
+  ChevronDown, Edit3, Archive, ArchiveRestore, CircleEllipsis, Trash2, MoreHorizontal, Check, Users, Mail, Building2, Layers, ImagePlus
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import {
-  getUserById, getChopesByUserId, getGivenCount, getChopedCount,
+  getUserById, getChopesByUserId, getGivenCount,
   updateUserProfile, getListingsByUserId, deleteListing, deleteChope,
   uploadListingImage, updateListing, replaceListingMedia, setListingArchived,
 } from '@/lib/db'
@@ -63,17 +63,29 @@ const locations = [
   'Level 12, Lobby', 'Level 12, Pantry',
 ]
 
+function isActiveChope(chope: DBChope): boolean {
+  return Boolean(chope.listing && !chope.listing.is_archived)
+}
+
 // ----- ChopeCard -----
 
-function ChopeCard({ chope, onUnchope }: { chope: DBChope; onUnchope?: (chopeId: string) => void }) {
+function ChopeCard({
+  chope,
+  onUnchope,
+  variant = 'active',
+}: {
+  chope: DBChope
+  onUnchope?: (chopeId: string) => void
+  variant?: 'active' | 'archived'
+}) {
   const listing = chope.listing
   const media = listing?.media
-  const giver = (listing as any)?.giver
+  const giver = (listing as { giver?: { name?: string; email?: string; agency?: string; office_floor?: string; avatar_seed?: string } })?.giver
   const createdAt = new Date(chope.created_at)
   const [showGiverDrawer, setShowGiverDrawer] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-
-  if (!listing) return null
+  const isArchived = variant === 'archived'
+  const title = listing?.title ?? 'Listing unavailable'
 
   const handleUnchope = async () => {
     setIsDeleting(true)
@@ -86,7 +98,12 @@ function ChopeCard({ chope, onUnchope }: { chope: DBChope; onUnchope?: (chopeId:
 
   return (
     <>
-      <div className="bg-card border border-border rounded-xl p-3 flex gap-3 relative">
+      <div
+        className={cn(
+          'border border-border rounded-xl p-3 flex gap-3 relative',
+          isArchived ? 'bg-muted/50' : 'bg-card'
+        )}
+      >
         <button
           onClick={handleUnchope}
           disabled={isDeleting}
@@ -95,17 +112,47 @@ function ChopeCard({ chope, onUnchope }: { chope: DBChope; onUnchope?: (chopeId:
         >
           <X className="size-4" />
         </button>
-        <img
-          src={media?.[0]?.url || ''}
-          alt={listing.title}
-          className="size-20 rounded-lg object-cover flex-shrink-0"
-        />
-        <div className="flex-1 min-w-0 space-y-1">
-          <h4 className="font-medium text-foreground line-clamp-1">{listing.title}</h4>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <MapPin className="size-3 flex-shrink-0" />
-            <span className="truncate">{listing.location}</span>
+        {listing?.media?.[0]?.url ? (
+          <img
+            src={media?.[0]?.url || ''}
+            alt={title}
+            className={cn(
+              'size-20 rounded-lg object-cover flex-shrink-0',
+              isArchived && 'grayscale'
+            )}
+          />
+        ) : (
+          <div
+            className={cn(
+              'size-20 rounded-lg bg-muted flex-shrink-0 flex items-center justify-center',
+              isArchived && 'grayscale opacity-75'
+            )}
+          >
+            <Package className="size-8 text-muted-foreground" />
           </div>
+        )}
+        <div className="flex-1 min-w-0 space-y-1">
+          <div className="flex items-start gap-2 pr-6">
+            <h4
+              className={cn(
+                'font-medium text-foreground line-clamp-1 flex-1',
+                isArchived && 'opacity-75'
+              )}
+            >
+              {title}
+            </h4>
+            {isArchived && (
+              <Badge variant="secondary" className="shrink-0 text-[10px] px-1.5 py-0">
+                {listing ? 'Listing archived' : 'Unavailable'}
+              </Badge>
+            )}
+          </div>
+          {listing && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <MapPin className="size-3 flex-shrink-0" />
+              <span className="truncate">{listing.location}</span>
+            </div>
+          )}
           <div className="flex items-center justify-between gap-2 pt-0.5">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Clock className="size-3 flex-shrink-0" />
@@ -124,7 +171,6 @@ function ChopeCard({ chope, onUnchope }: { chope: DBChope; onUnchope?: (chopeId:
         </div>
       </div>
 
-      {/* Giver detail drawer */}
       {giver && (
         <Drawer open={showGiverDrawer} onOpenChange={setShowGiverDrawer}>
           <DrawerContent className="bg-card">
@@ -194,16 +240,33 @@ function ChopeCard({ chope, onUnchope }: { chope: DBChope; onUnchope?: (chopeId:
 // ----- MyChopesDrawer -----
 
 function MyChopesDrawer({
-  chopes,
+  activeChopes,
+  archivedChopes,
+  previewLimit,
   open,
   onOpenChange,
   onUnchope,
 }: {
-  chopes: DBChope[]
+  activeChopes: DBChope[]
+  archivedChopes: DBChope[]
+  previewLimit: number
   open: boolean
   onOpenChange: (open: boolean) => void
   onUnchope: (chopeId: string) => void
 }) {
+  const overflowActive = activeChopes.slice(previewLimit)
+  const activeCount = activeChopes.length
+  const pastCount = archivedChopes.length
+
+  const descriptionParts: string[] = []
+  if (activeCount > 0) {
+    descriptionParts.push(`${activeCount} active`)
+  }
+  if (pastCount > 0) {
+    descriptionParts.push(`${pastCount} past`)
+  }
+  const description = descriptionParts.length > 0 ? descriptionParts.join(' · ') : 'No chopings'
+
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="bg-card max-h-[90vh]">
@@ -212,18 +275,34 @@ function MyChopesDrawer({
             <Package className="size-5 text-primary" />
             My Chopes
           </DrawerTitle>
-          <DrawerDescription>
-            {chopes.length} item{chopes.length === 1 ? '' : 's'} you&apos;ve choped
-          </DrawerDescription>
+          <DrawerDescription>{description}</DrawerDescription>
         </DrawerHeader>
-        <div className="px-4 pb-4 space-y-2 overflow-y-auto max-h-[60vh]">
-          {chopes.map((chope) => (
-            <ChopeCard
-              key={chope.id}
-              chope={chope}
-              onUnchope={onUnchope}
-            />
-          ))}
+        <div className="px-4 pb-4 space-y-4 overflow-y-auto max-h-[60vh]">
+          {overflowActive.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Active
+              </p>
+              {overflowActive.map((chope) => (
+                <ChopeCard key={chope.id} chope={chope} onUnchope={onUnchope} />
+              ))}
+            </div>
+          )}
+          {archivedChopes.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Past chopings
+              </p>
+              {archivedChopes.map((chope) => (
+                <ChopeCard
+                  key={chope.id}
+                  chope={chope}
+                  variant="archived"
+                  onUnchope={onUnchope}
+                />
+              ))}
+            </div>
+          )}
         </div>
         <DrawerFooter>
           <DrawerClose asChild>
@@ -979,18 +1058,17 @@ export function MyStuffView({ userId }: { userId: string }) {
   useEffect(() => {
     async function loadData() {
       try {
-        const [userData, chopesData, given, choped, allListings] = await Promise.all([
+        const [userData, chopesData, given, allListings] = await Promise.all([
           getUserById(userId),
           getChopesByUserId(userId),
           getGivenCount(userId),
-          getChopedCount(userId),
           getListingsByUserId(userId),
         ])
 
         setUser(userData)
         setChopes(chopesData)
         setGivenCount(given)
-        setChopedCount(choped)
+        setChopedCount(chopesData.filter(isActiveChope).length)
 
         const active = (allListings as DBListingWithChopes[]).filter(l => !l.is_archived)
         const archived = (allListings as DBListingWithChopes[]).filter(l => l.is_archived)
@@ -1041,12 +1119,20 @@ export function MyStuffView({ userId }: { userId: string }) {
   }
 
   const handleUnchope = (chopeId: string) => {
+    const chope = chopes.find((c) => c.id === chopeId)
+    const wasActive = chope ? isActiveChope(chope) : false
     setChopes((prev) => prev.filter((c) => c.id !== chopeId))
-    setChopedCount((prev) => Math.max(0, prev - 1))
+    if (wasActive) {
+      setChopedCount((prev) => Math.max(0, prev - 1))
+    }
   }
 
-  const previewChopes = chopes.slice(0, CHOPES_PREVIEW_LIMIT)
-  const moreChopesCount = Math.max(0, chopes.length - CHOPES_PREVIEW_LIMIT)
+  const activeChopes = chopes.filter(isActiveChope)
+  const archivedChopes = chopes.filter((c) => c.listing?.is_archived)
+  const previewChopes = activeChopes.slice(0, CHOPES_PREVIEW_LIMIT)
+  const moreActiveCount = Math.max(0, activeChopes.length - CHOPES_PREVIEW_LIMIT)
+  const hiddenChopesCount = moreActiveCount + archivedChopes.length
+  const showViewMoreChopes = hiddenChopesCount > 0
 
   return (
     <div className="space-y-6 pt-4 pb-8">
@@ -1111,39 +1197,44 @@ export function MyStuffView({ userId }: { userId: string }) {
             <Package className="size-5 text-primary" />
             My Chopes
           </h3>
-          <Badge variant="secondary" className="bg-muted">{chopes.length}</Badge>
+          <Badge variant="secondary" className="bg-muted">{activeChopes.length}</Badge>
         </div>
 
-        {chopes.length === 0 ? (
+        {activeChopes.length === 0 ? (
           <div className="text-center py-8 bg-muted/50 rounded-xl">
             <p className="text-muted-foreground">Nothing here leh...</p>
-            <p className="text-sm text-muted-foreground mt-1">Start browsing and chope some items!</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {archivedChopes.length > 0
+                ? 'Your past chopings are in View more.'
+                : 'Start browsing and chope some items!'}
+            </p>
           </div>
         ) : (
-          <>
-            <div className="space-y-2">
-              {previewChopes.map((chope) => (
-                <ChopeCard
-                  key={chope.id}
-                  chope={chope}
-                  onUnchope={handleUnchope}
-                />
-              ))}
-            </div>
-            {moreChopesCount > 0 && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsChopesDrawerOpen(true)}
-                className="w-full h-12 rounded-xl justify-between px-4"
-              >
-                <span className="font-medium text-muted-foreground">View more</span>
-                <Badge variant="secondary" className="bg-muted">
-                  {moreChopesCount}
-                </Badge>
-              </Button>
-            )}
-          </>
+          <div className="space-y-2">
+            {previewChopes.map((chope) => (
+              <ChopeCard
+                key={chope.id}
+                chope={chope}
+                onUnchope={handleUnchope}
+              />
+            ))}
+          </div>
+        )}
+        {showViewMoreChopes && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsChopesDrawerOpen(true)}
+            className="w-full h-12 rounded-xl justify-between px-4"
+          >
+            <span className="flex items-center gap-2 font-medium text-muted-foreground">
+              <CircleEllipsis className="size-5" />
+              View more
+            </span>
+            <Badge variant="secondary" className="bg-muted">
+              {hiddenChopesCount}
+            </Badge>
+          </Button>
         )}
       </section>
 
@@ -1196,7 +1287,9 @@ export function MyStuffView({ userId }: { userId: string }) {
       </section>
 
       <MyChopesDrawer
-        chopes={chopes}
+        activeChopes={activeChopes}
+        archivedChopes={archivedChopes}
+        previewLimit={CHOPES_PREVIEW_LIMIT}
         open={isChopesDrawerOpen}
         onOpenChange={setIsChopesDrawerOpen}
         onUnchope={handleUnchope}
