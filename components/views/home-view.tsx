@@ -36,12 +36,12 @@ function HotLobangCard({
   onChopeSuccess: (listingId: string, newQuantityRemaining: number) => void
 }) {
   return (
-    <div className="min-w-[280px] bg-card border border-border rounded-xl overflow-hidden">
+    <div className="flex-shrink-0 snap-start w-[calc((min(100vw,32rem)-2rem-0.75rem)/2)] bg-card border border-border rounded-xl overflow-hidden">
       <div className="relative">
         <img
           src={listing.media?.[0]?.url}
           alt={listing.title}
-          className="w-full h-36 object-cover"
+          className="w-full h-28 object-cover"
         />
         {listing.ends_at && (
           <div className="absolute top-2 right-2">
@@ -52,11 +52,11 @@ function HotLobangCard({
           {listing.category}
         </Badge>
       </div>
-      <div className="p-3 space-y-2">
+      <div className="p-2.5 space-y-2">
         <h4 className="font-medium text-foreground line-clamp-1">{listing.title}</h4>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <MapPin className="size-3" />
-          <span>{listing.location}</span>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
+          <MapPin className="size-3 shrink-0" />
+          <span className="line-clamp-1">{listing.location}</span>
         </div>
         <ChopeSheet
           listing={listing as any}
@@ -217,7 +217,7 @@ export function HomeView({ userId, onNavigate, onLogout }: HomeViewProps) {
             <ArrowRight className="size-4" />
           </button>
         </div>
-        <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
+        <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory px-4 pb-2 scrollbar-hide">
           {hotLobangs.map((listing) => (
                 <HotLobangCard
                   key={listing.id}
