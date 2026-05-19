@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Image from 'next/image'
 import { ArrowRight } from 'lucide-react'
+import { getLastEmail, setLastEmail } from '@/lib/auth-session'
 import { getUserByEmail } from '@/lib/db'
 
 interface LoginViewProps {
@@ -15,6 +16,11 @@ export function LoginView({ onLogin }: LoginViewProps) {
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    const lastEmail = getLastEmail()
+    if (lastEmail) setEmail(lastEmail)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,10 +49,8 @@ export function LoginView({ onLogin }: LoginViewProps) {
         return
       }
       
-      // Store user ID in session storage
-      sessionStorage.setItem('userId', user.id)
-      
-      // Call parent onLogin with user ID
+      setLastEmail(email)
+
       onLogin(user.id)
     } catch (err) {
       console.error('Login error:', err)

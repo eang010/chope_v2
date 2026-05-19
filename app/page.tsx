@@ -7,6 +7,13 @@ import { LobangView } from '@/components/views/lobang-view'
 import { GiveAwayView } from '@/components/views/give-away-view'
 import { MyStuffView } from '@/components/views/my-stuff-view'
 import { LoginView } from '@/components/views/login-view'
+import {
+  clearAuthSession,
+  getStoredUserId,
+  migrateSessionFromSessionStorage,
+  setStoredUserId,
+} from '@/lib/auth-session'
+import { getUserById } from '@/lib/db'
 import { NavItem } from '@/lib/types'
 
 export default function Home() {
@@ -16,18 +23,40 @@ export default function Home() {
   const [activeNav, setActiveNav] = useState<NavItem>('home')
   const [urgentOnly, setUrgentOnly] = useState(false)
 
-  // Check for existing session on mount
+  // Restore persisted session on mount
   useEffect(() => {
-    const storedUserId = sessionStorage.getItem('userId')
-    if (storedUserId) {
+    let cancelled = false
+
+    async function restoreSession() {
+      migrateSessionFromSessionStorage()
+      const storedUserId = getStoredUserId()
+      if (!storedUserId) {
+        if (!cancelled) setIsLoading(false)
+        return
+      }
+
+      const user = await getUserById(storedUserId)
+      if (cancelled) return
+
+      if (!user) {
+        clearAuthSession()
+        setIsLoading(false)
+        return
+      }
+
       setUserId(storedUserId)
       setIsLoggedIn(true)
+      setIsLoading(false)
     }
-    setIsLoading(false)
+
+    restoreSession()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const handleLogin = (id: string) => {
-    sessionStorage.setItem('userId', id)
+    setStoredUserId(id)
     setUserId(id)
     setIsLoggedIn(true)
   }
@@ -38,7 +67,7 @@ export default function Home() {
   }
 
   const handleLogout = () => {
-    sessionStorage.removeItem('userId')
+    clearAuthSession()
     setUserId(null)
     setIsLoggedIn(false)
     setActiveNav('home')
