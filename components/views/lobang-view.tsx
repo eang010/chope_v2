@@ -12,10 +12,10 @@ import type { Listing } from '@/lib/db'
 interface LobangViewProps {
   userId: string
   urgentOnly?: boolean
-  onClearUrgentFilter?: () => void
+  onUrgentOnlyChange?: (urgentOnly: boolean) => void
 }
 
-export function LobangView({ userId, urgentOnly = false, onClearUrgentFilter }: LobangViewProps) {
+export function LobangView({ userId, urgentOnly = false, onUrgentOnlyChange }: LobangViewProps) {
   const [activeCategory, setActiveCategory] = useState('All')
   const [listings, setListings] = useState<Listing[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -84,14 +84,14 @@ export function LobangView({ userId, urgentOnly = false, onClearUrgentFilter }: 
       </header>
 
       {/* Urgent filter banner */}
-      {urgentOnly && onClearUrgentFilter && (
+      {urgentOnly && onUrgentOnlyChange && (
         <div className="mx-4 bg-destructive/10 border border-destructive/20 rounded-lg p-3 flex items-center justify-between">
           <div className="flex items-center gap-2 text-destructive">
             <Flame className="size-4" />
             <span className="text-sm font-medium">Showing urgent items only</span>
           </div>
           <button 
-            onClick={onClearUrgentFilter}
+            onClick={() => onUrgentOnlyChange(false)}
             className="text-destructive hover:text-destructive/80 p-1"
             aria-label="Clear urgent filter"
           >
@@ -102,6 +102,20 @@ export function LobangView({ userId, urgentOnly = false, onClearUrgentFilter }: 
 
       {/* Category filter */}
       <div className="flex gap-2 overflow-x-auto px-4 pb-2 scrollbar-hide">
+        <button
+          type="button"
+          onClick={() => onUrgentOnlyChange?.(!urgentOnly)}
+          className={cn(
+            'px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 border',
+            urgentOnly
+              ? 'bg-destructive/15 border-destructive/30 text-destructive'
+              : 'bg-muted border-transparent text-muted-foreground hover:bg-muted/80'
+          )}
+          aria-pressed={urgentOnly}
+        >
+          <Flame className="size-3.5" />
+          Hot only
+        </button>
         {categories.map((category) => (
           <button
             key={category}

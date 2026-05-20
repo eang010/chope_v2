@@ -73,8 +73,8 @@ export default function Home() {
     setActiveNav('home')
   }
 
-  const handleClearUrgentFilter = () => {
-    setUrgentOnly(false)
+  const handleUrgentOnlyChange = (urgent: boolean) => {
+    setUrgentOnly(urgent)
   }
 
   // Show nothing while checking session
@@ -97,10 +97,10 @@ export default function Home() {
         <HomeView userId={userId} onNavigate={(nav, options) => handleNavigate(nav as NavItem, options)} onLogout={handleLogout} />
       )}
       {activeNav === 'lobang' && userId && (
-        <LobangView 
+        <LobangView
           userId={userId}
-          urgentOnly={urgentOnly} 
-          onClearUrgentFilter={handleClearUrgentFilter} 
+          urgentOnly={urgentOnly}
+          onUrgentOnlyChange={handleUrgentOnlyChange}
         />
       )}
       {activeNav === 'give-away' && userId && (
