@@ -95,6 +95,7 @@ function ChopeCard({
         )}
       >
         <button
+          type="button"
           onClick={handleUnchope}
           disabled={isDeleting}
           className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
@@ -143,6 +144,13 @@ function ChopeCard({
               <span className="truncate">{listing.location}</span>
             </div>
           )}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Package className="size-3 flex-shrink-0 opacity-70" aria-hidden />
+            <span>
+              You choped {chope.quantity}{' '}
+              {chope.quantity === 1 ? 'item' : 'items'}
+            </span>
+          </div>
           <div className="flex items-center justify-between gap-2 pt-0.5">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Clock className="size-3 flex-shrink-0" />
@@ -150,6 +158,7 @@ function ChopeCard({
             </div>
             {giver?.name && (
               <button
+                type="button"
                 onClick={() => setShowGiverDrawer(true)}
                 className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-primary/15 hover:bg-primary/25 text-primary transition-colors"
               >

@@ -1,6 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import {
   Drawer,
@@ -15,7 +24,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { Listing } from '@/lib/types'
 import type { Listing as DBListing } from '@/lib/db'
-import { createChope, updateListingQuantity } from '@/lib/db'
+import { createChope, updateListingQuantity, getChopesByUserAndListing } from '@/lib/db'
 import { cn } from '@/lib/utils'
 import { Check, Hand, Minus, Plus } from 'lucide-react'
 
@@ -37,6 +46,11 @@ export function ChopeSheet({ listing, userId, trigger, onChopeSuccess }: ChopeSh
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false)
+  const [duplicateSummary, setDuplicateSummary] = useState({
+    reservationCount: 0,
+    priorTotalQty: 0,
+  })
   
   // Handle both old Listing type and new DBListing type
   const isDBListing = 'quantity_remaining' in listing
@@ -64,39 +78,63 @@ export function ChopeSheet({ listing, userId, trigger, onChopeSuccess }: ChopeSh
     }
   }
   
+  const performCreate = async (): Promise<boolean> => {
+    const chope = await createChope(userId, listing.id, message || null, quantity)
+
+    if (!chope) {
+      setIsSubmitting(false)
+      return false
+    }
+
+    const newQty = quantityRemaining - quantity
+    const updated = await updateListingQuantity(listing.id, newQty)
+
+    if (!updated) {
+      setIsSubmitting(false)
+      return false
+    }
+
+    setIsSubmitted(true)
+    setTimeout(() => {
+      setIsOpen(false)
+      onChopeSuccess?.(listing.id, newQty)
+      setTimeout(() => {
+        setIsSubmitted(false)
+        setIsSubmitting(false)
+        setMessage('')
+        setQuantity(1)
+      }, 300)
+    }, 1500)
+    return true
+  }
+
   const handleSubmit = async () => {
     if (isFullyChoped || isOwnListing) return
 
     setIsSubmitting(true)
-    
-    // Create the chope record in database
-    const chope = await createChope(userId, listing.id, message || null, quantity)
-    
-    if (chope) {
-      const newQty = quantityRemaining - quantity
-      const updated = await updateListingQuantity(listing.id, newQty)
-
-      if (!updated) {
+    try {
+      const existing = await getChopesByUserAndListing(userId, listing.id)
+      if (existing.length > 0) {
+        const priorTotalQty = existing.reduce((s, r) => s + r.quantity, 0)
+        setDuplicateSummary({
+          reservationCount: existing.length,
+          priorTotalQty,
+        })
+        setDuplicateDialogOpen(true)
         setIsSubmitting(false)
         return
       }
 
-      setIsSubmitted(true)
-      setTimeout(() => {
-        setIsOpen(false)
-        onChopeSuccess?.(listing.id, newQty)
-        // Reset after drawer closes
-        setTimeout(() => {
-          setIsSubmitted(false)
-          setIsSubmitting(false)
-          setMessage('')
-          setQuantity(1)
-        }, 300)
-      }, 1500)
-    } else {
+      await performCreate()
+    } catch {
       setIsSubmitting(false)
-      // Could add error handling here
     }
+  }
+
+  const handleConfirmDuplicateChope = () => {
+    setDuplicateDialogOpen(false)
+    setIsSubmitting(true)
+    void performCreate()
   }
   
   if (isFullyChoped) {
@@ -126,6 +164,7 @@ export function ChopeSheet({ listing, userId, trigger, onChopeSuccess }: ChopeSh
   }
 
   return (
+    <>
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
       <DrawerTrigger asChild>
         {trigger || (
@@ -245,13 +284,16 @@ export function ChopeSheet({ listing, userId, trigger, onChopeSuccess }: ChopeSh
           <DrawerFooter>
             <Button
               onClick={handleSubmit}
+              disabled={isSubmitting}
               className={cn(
                 'w-full h-12 text-base font-semibold rounded-xl',
                 'bg-primary hover:bg-primary/90 text-primary-foreground'
               )}
             >
               <Hand className="size-5 mr-2" />
-              Chope {quantity > 1 ? `${quantity} items` : 'Now'}!
+              {isSubmitting
+                ? 'Hold on…'
+                : `Chope ${quantity > 1 ? `${quantity} items` : 'Now'}!`}
             </Button>
             <DrawerClose asChild>
               <Button variant="outline" className="w-full h-11 rounded-xl">
@@ -262,5 +304,26 @@ export function ChopeSheet({ listing, userId, trigger, onChopeSuccess }: ChopeSh
         )}
       </DrawerContent>
     </Drawer>
+
+      <AlertDialog open={duplicateDialogOpen} onOpenChange={setDuplicateDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Chope this listing again?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You already have {duplicateSummary.reservationCount}{' '}
+              {duplicateSummary.reservationCount === 1 ? 'chope' : 'chopes'} on this listing (
+              {duplicateSummary.priorTotalQty} item
+              {duplicateSummary.priorTotalQty === 1 ? '' : 's'} total). Add another reservation?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button type="button" onClick={handleConfirmDuplicateChope}>
+              Continue
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

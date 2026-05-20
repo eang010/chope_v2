@@ -195,6 +195,26 @@ export async function getChopesByUserId(userId: string): Promise<Chope[]> {
   return data || []
 }
 
+export async function getChopesByUserAndListing(
+  userId: string,
+  listingId: string
+): Promise<Pick<Chope, 'id' | 'quantity' | 'created_at'>[]> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('chopes')
+    .select('id, quantity, created_at')
+    .eq('user_id', userId)
+    .eq('listing_id', listingId)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching chopes for listing:', error)
+    return []
+  }
+
+  return data ?? []
+}
+
 // Count Functions
 export async function getGivenCount(userId: string): Promise<number> {
   await archiveExpiredListings()
