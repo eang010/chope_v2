@@ -36,6 +36,7 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
   const [category, setCategory] = useState('')
   const [condition, setCondition] = useState('')
   const [location, setLocation] = useState('')
+  const [quantity, setQuantity] = useState(1)
   const [hasEndDate, setHasEndDate] = useState(false)
   const [endDate, setEndDate] = useState(() => {
     const today = new Date()
@@ -47,7 +48,7 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
 
   const handleSubmit = async () => {
     const trimmedLocation = location.trim()
-    if (!title || !category || !condition || !trimmedLocation || images.length === 0) {
+    if (!title || !category || !condition || !trimmedLocation || images.length === 0 || quantity < 1) {
       alert('Please fill in all required fields')
       return
     }
@@ -79,8 +80,8 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
         category,
         condition,
         location: trimmedLocation,
-        quantity: 1,
-        quantity_remaining: 1,
+        quantity,
+        quantity_remaining: quantity,
         ends_at: endsAt,
         is_archived: false,
       }
@@ -132,7 +133,7 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
   }
 
   const isValid =
-    title && description && category && condition && location.trim() && images.length > 0
+    title && description && category && condition && location.trim() && images.length > 0 && quantity >= 1
 
   if (isSubmitted) {
     return (
@@ -238,6 +239,26 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
             className="min-h-[100px]"
           />
           <p className="text-xs text-muted-foreground text-right">{description.length}/500</p>
+        </div>
+
+        {/* Quantity */}
+        <div className="space-y-2">
+          <label htmlFor="quantity" className="text-sm font-medium text-foreground">
+            Quantity available <span className="text-destructive">*</span>
+          </label>
+          <p className="text-xs text-muted-foreground">
+            How many of this item are you giving away?
+          </p>
+          <Input
+            id="quantity"
+            type="number"
+            min={1}
+            value={quantity}
+            onChange={(e) =>
+              setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))
+            }
+            className="h-11"
+          />
         </div>
 
         {/* Category */}
