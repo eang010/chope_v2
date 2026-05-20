@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { QuantityStepper } from '@/components/ui/quantity-stepper'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
@@ -243,21 +244,19 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
 
         {/* Quantity */}
         <div className="space-y-2">
-          <label htmlFor="quantity" className="text-sm font-medium text-foreground">
+          <label id="quantity-label" className="text-sm font-medium text-foreground">
             Quantity available <span className="text-destructive">*</span>
           </label>
           <p className="text-xs text-muted-foreground">
             How many of this item are you giving away?
           </p>
-          <Input
-            id="quantity"
-            type="number"
-            min={1}
+          <QuantityStepper
+            aria-labelledby="quantity-label"
             value={quantity}
-            onChange={(e) =>
-              setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))
-            }
-            className="h-11"
+            onChange={setQuantity}
+            min={1}
+            max={99}
+            disabled={isSubmitting}
           />
         </div>
 

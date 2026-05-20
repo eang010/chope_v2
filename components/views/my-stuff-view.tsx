@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { QuantityStepper } from '@/components/ui/quantity-stepper'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Drawer,
@@ -810,13 +811,17 @@ function EditListingDrawer({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Quantity available</label>
-            <Input
-              type="number"
-              min={minQuantity}
+            <label id="edit-qty-label" className="text-sm font-medium text-foreground">
+              Quantity available
+            </label>
+            <QuantityStepper
+              aria-labelledby="edit-qty-label"
               value={quantity}
-              onChange={(e) => setQuantity(Math.max(minQuantity, parseInt(e.target.value, 10) || minQuantity))}
-              className="h-11 rounded-xl"
+              onChange={setQuantity}
+              min={minQuantity}
+              max={99}
+              disabled={isSaving}
+              className="rounded-xl"
             />
             {chopedCount > 0 && (
               <p className="text-xs text-muted-foreground">
