@@ -4,13 +4,13 @@ import { useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer'
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 import { Mail, Building2, Layers } from 'lucide-react'
 
@@ -24,17 +24,17 @@ interface GiverBadgeProps {
   className?: string
 }
 
-export function GiverBadge({ 
-  name, 
-  avatar, 
+export function GiverBadge({
+  name,
+  avatar,
   avatarSeed,
-  email, 
-  agency, 
+  email,
+  agency,
   officeFloor,
-  className 
+  className,
 }: GiverBadgeProps) {
   const [showProfile, setShowProfile] = useState(false)
-  
+
   const initials = name
     .split(' ')
     .map((n) => n[0])
@@ -42,11 +42,13 @@ export function GiverBadge({
     .toUpperCase()
     .slice(0, 2)
 
-  const avatarUrl = avatar || (avatarSeed ? `https://api.dicebear.com/9.x/thumbs/svg?seed=${avatarSeed}` : '')
-  
+  const avatarUrl =
+    avatar || (avatarSeed ? `https://api.dicebear.com/9.x/thumbs/svg?seed=${avatarSeed}` : '')
+
   return (
     <>
       <button
+        type="button"
         onClick={() => setShowProfile(true)}
         className={cn(
           'inline-flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-card/80 backdrop-blur-sm border border-card hover:bg-card/90 hover:border-primary/50 transition-all',
@@ -59,15 +61,15 @@ export function GiverBadge({
             {initials}
           </AvatarFallback>
         </Avatar>
-        <span className="text-xs font-medium text-card-foreground">
-          {name}
-        </span>
+        <span className="text-xs font-medium text-card-foreground">{name}</span>
       </button>
 
-      {/* Giver Profile Drawer */}
-      <Drawer open={showProfile} onOpenChange={setShowProfile}>
-        <DrawerContent className="bg-card">
-          <DrawerHeader className="text-center pb-2">
+      <Sheet open={showProfile} onOpenChange={setShowProfile}>
+        <SheetContent
+          side="bottom"
+          className="bg-card gap-0 overflow-y-auto rounded-t-xl p-0 [&>button]:hidden"
+        >
+          <SheetHeader className="text-center pb-2 pt-4">
             <div className="flex flex-col items-center gap-3">
               <Avatar className="size-16 border-2 border-primary">
                 <AvatarImage src={avatarUrl} alt={name} />
@@ -75,9 +77,9 @@ export function GiverBadge({
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <DrawerTitle className="text-lg">{name}</DrawerTitle>
+              <SheetTitle className="text-lg">{name}</SheetTitle>
             </div>
-          </DrawerHeader>
+          </SheetHeader>
           <div className="px-4 pb-4 space-y-3">
             {email && (
               <div className="flex items-center gap-3 p-3 bg-muted rounded-xl">
@@ -115,15 +117,15 @@ export function GiverBadge({
               </div>
             </div>
           </div>
-          <DrawerFooter>
-            <DrawerClose asChild>
+          <SheetFooter className="p-4 pt-0">
+            <SheetClose asChild>
               <Button variant="ghost" className="w-full h-11 rounded-xl">
                 Close
               </Button>
-            </DrawerClose>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+            </SheetClose>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </>
   )
 }

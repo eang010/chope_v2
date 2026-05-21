@@ -18,7 +18,7 @@ const navItems: { id: NavItem; label: string; icon: typeof Home }[] = [
 
 export function FloatingNav({ activeItem, onNavigate }: FloatingNavProps) {
   return (
-    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
       <div className="flex items-center gap-1 bg-card/95 backdrop-blur-md border border-border rounded-full px-2 py-2 shadow-lg">
         {navItems.map((item) => {
           const Icon = item.icon

@@ -139,3 +139,31 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* iOS Safari / PWA standalone: keep modal layers above page and capture touches */
+@supports (-webkit-touch-callout: none) {
+  [data-slot='drawer-overlay'][data-state='open'],
+  [data-slot='sheet-overlay'][data-state='open'] {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    pointer-events: auto;
+  }
+  [data-slot='drawer-content'],
+  [data-slot='sheet-content'] {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (display-mode: standalone) {
+  [data-slot='sheet-overlay'][data-state='open'],
+  [data-slot='drawer-overlay'][data-state='open'] {
+    z-index: 9998;
+    pointer-events: auto;
+  }
+  [data-slot='sheet-content'],
+  [data-slot='drawer-content'] {
+    z-index: 9999;
+  }
+}
