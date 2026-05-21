@@ -149,7 +149,9 @@
     pointer-events: auto;
   }
   [data-slot='drawer-content'],
-  [data-slot='sheet-content'] {
+  [data-slot='sheet-content'],
+  [data-slot='alert-dialog-overlay'][data-state='open'],
+  [data-slot='alert-dialog-content'] {
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
     -webkit-overflow-scrolling: touch;
@@ -165,5 +167,13 @@
   [data-slot='sheet-content'],
   [data-slot='drawer-content'] {
     z-index: 9999;
+  }
+  [data-slot='alert-dialog-overlay'][data-state='open'] {
+    z-index: 10000;
+    pointer-events: auto;
+  }
+  [data-slot='alert-dialog-content'] {
+    z-index: 10001;
+    pointer-events: auto;
   }
 }
