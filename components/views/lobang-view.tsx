@@ -13,12 +13,21 @@ interface LobangViewProps {
   userId: string
   urgentOnly?: boolean
   onUrgentOnlyChange?: (urgentOnly: boolean) => void
+  focusListingId?: string | null
+  onFocusListingHandled?: () => void
 }
 
-export function LobangView({ userId, urgentOnly = false, onUrgentOnlyChange }: LobangViewProps) {
+export function LobangView({
+  userId,
+  urgentOnly = false,
+  onUrgentOnlyChange,
+  focusListingId,
+  onFocusListingHandled,
+}: LobangViewProps) {
   const [activeCategory, setActiveCategory] = useState('All')
   const [listings, setListings] = useState<Listing[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [highlightedListingId, setHighlightedListingId] = useState<string | null>(null)
   const now = new Date()
   
   useEffect(() => {
@@ -35,6 +44,34 @@ export function LobangView({ userId, urgentOnly = false, onUrgentOnlyChange }: L
 
     loadListings()
   }, [])
+
+  useEffect(() => {
+    if (!focusListingId || isLoading) return
+
+    const listing = listings.find((l) => l.id === focusListingId)
+    if (!listing) {
+      onFocusListingHandled?.()
+      return
+    }
+
+    setActiveCategory('All')
+
+    let highlightTimer: ReturnType<typeof setTimeout> | undefined
+
+    const scrollTimer = window.setTimeout(() => {
+      document
+        .getElementById(`listing-${focusListingId}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setHighlightedListingId(focusListingId)
+      onFocusListingHandled?.()
+      highlightTimer = window.setTimeout(() => setHighlightedListingId(null), 2000)
+    }, 100)
+
+    return () => {
+      clearTimeout(scrollTimer)
+      if (highlightTimer) clearTimeout(highlightTimer)
+    }
+  }, [focusListingId, isLoading, listings, onFocusListingHandled])
 
   const handleChopeSuccess = (listingId: string, newQuantityRemaining: number) => {
     setListings((prev) =>
@@ -148,6 +185,7 @@ export function LobangView({ userId, urgentOnly = false, onUrgentOnlyChange }: L
               listing={listing}
               userId={userId}
               onChopeSuccess={handleChopeSuccess}
+              highlighted={highlightedListingId === listing.id}
             />
           ))
         )}

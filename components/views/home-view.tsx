@@ -20,10 +20,11 @@ import { Gift, Package, ArrowRight, Clock, MapPin, Mail, Building2, Layers, LogO
 import { differenceInHours } from 'date-fns'
 import { getAllListings, getUserById, getGivenCount, getChopedCount } from '@/lib/db'
 import type { Listing, User } from '@/lib/db'
+import type { NavigateOptions } from '@/lib/types'
 
 interface HomeViewProps {
   userId: string
-  onNavigate: (nav: 'lobang' | 'give-away' | 'my-stuff', options?: { urgentOnly?: boolean }) => void
+  onNavigate: (nav: 'lobang' | 'give-away' | 'my-stuff', options?: NavigateOptions) => void
   onLogout: () => void
 }
 
@@ -31,34 +32,48 @@ function HotLobangCard({
   listing,
   userId,
   onChopeSuccess,
+  onOpenListing,
 }: {
   listing: Listing
   userId: string
   onChopeSuccess: (listingId: string, newQuantityRemaining: number) => void
+  onOpenListing: (listingId: string) => void
 }) {
   return (
     <div className="flex-shrink-0 snap-start w-[calc((min(100vw,32rem)-2rem-0.75rem)/2)] bg-card border border-border rounded-xl overflow-hidden">
-      <div className="relative">
-        <MediaCarousel
-          media={listing.media || []}
-          alt={listing.title}
-          className="aspect-auto h-28"
-        />
-        {listing.ends_at && (
-          <div className="absolute top-2 right-2">
-            <CountdownTimer endsAt={new Date(listing.ends_at)} />
-          </div>
-        )}
-        <Badge className="absolute bottom-2 left-2 bg-card/90 backdrop-blur-sm text-card-foreground" variant="secondary">
-          {listing.category}
-        </Badge>
-      </div>
-      <div className="p-2.5 space-y-2">
-        <h4 className="font-medium text-foreground line-clamp-1">{listing.title}</h4>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
-          <MapPin className="size-3 shrink-0" />
-          <span className="line-clamp-1">{listing.location}</span>
+      <button
+        type="button"
+        onClick={() => onOpenListing(listing.id)}
+        className="w-full text-left block hover:bg-muted/30 transition-colors"
+        aria-label={`View ${listing.title} on Lobang`}
+      >
+        <div className="relative">
+          <MediaCarousel
+            media={listing.media || []}
+            alt={listing.title}
+            className="aspect-auto h-28"
+          />
+          {listing.ends_at && (
+            <div className="absolute top-2 right-2 pointer-events-none">
+              <CountdownTimer endsAt={new Date(listing.ends_at)} />
+            </div>
+          )}
+          <Badge
+            className="absolute bottom-2 left-2 bg-card/90 backdrop-blur-sm text-card-foreground pointer-events-none"
+            variant="secondary"
+          >
+            {listing.category}
+          </Badge>
         </div>
+        <div className="p-2.5 space-y-2">
+          <h4 className="font-medium text-foreground line-clamp-1">{listing.title}</h4>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
+            <MapPin className="size-3 shrink-0" />
+            <span className="line-clamp-1">{listing.location}</span>
+          </div>
+        </div>
+      </button>
+      <div className="px-2.5 pb-2.5">
         <ChopeSheet
           listing={listing as any}
           userId={userId}
@@ -225,6 +240,9 @@ export function HomeView({ userId, onNavigate, onLogout }: HomeViewProps) {
                   listing={listing}
                   userId={userId}
                   onChopeSuccess={handleChopeSuccess}
+                  onOpenListing={(id) =>
+                    onNavigate('lobang', { urgentOnly: true, focusListingId: id })
+                  }
                 />
           ))}
         </div>

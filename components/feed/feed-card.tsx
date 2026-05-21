@@ -15,6 +15,7 @@ interface FeedCardProps {
   listing: Listing | DBListing
   userId: string
   onChopeSuccess?: (listingId: string, newQuantityRemaining: number) => void
+  highlighted?: boolean
 }
 
 const conditionLabels: Record<Listing['condition'], string> = {
@@ -24,7 +25,7 @@ const conditionLabels: Record<Listing['condition'], string> = {
   'well-loved': 'Well Loved',
 }
 
-export function FeedCard({ listing, userId, onChopeSuccess }: FeedCardProps) {
+export function FeedCard({ listing, userId, onChopeSuccess, highlighted }: FeedCardProps) {
   // Handle both old Listing type and new DBListing type
   const isDBListing = 'giver_id' in listing
   const giver = isDBListing ? listing.giver : (listing as Listing).giver
@@ -34,7 +35,13 @@ export function FeedCard({ listing, userId, onChopeSuccess }: FeedCardProps) {
   const isFullyChoped = quantityRemaining <= 0
 
   return (
-    <article className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+    <article
+      id={`listing-${listing.id}`}
+      className={cn(
+        'bg-card border border-border rounded-2xl overflow-hidden shadow-sm transition-shadow',
+        highlighted && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+      )}
+    >
       {/* Media section with overlays */}
       <div className="relative">
         <MediaCarousel media={media || []} alt={listing.title} />

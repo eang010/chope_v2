@@ -51,3 +51,8 @@ export interface User {
 }
 
 export type NavItem = 'home' | 'lobang' | 'give-away' | 'my-stuff'
+
+export type NavigateOptions = {
+  urgentOnly?: boolean
+  focusListingId?: string
+}

@@ -14,7 +14,7 @@ import {
   setStoredUserId,
 } from '@/lib/auth-session'
 import { getUserById } from '@/lib/db'
-import { NavItem } from '@/lib/types'
+import { NavItem, type NavigateOptions } from '@/lib/types'
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -22,6 +22,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
   const [activeNav, setActiveNav] = useState<NavItem>('home')
   const [urgentOnly, setUrgentOnly] = useState(false)
+  const [focusListingId, setFocusListingId] = useState<string | null>(null)
 
   // Restore persisted session on mount
   useEffect(() => {
@@ -61,9 +62,10 @@ export default function Home() {
     setIsLoggedIn(true)
   }
 
-  const handleNavigate = (item: NavItem, options?: { urgentOnly?: boolean }) => {
+  const handleNavigate = (item: NavItem, options?: NavigateOptions) => {
     setActiveNav(item)
     setUrgentOnly(options?.urgentOnly ?? false)
+    setFocusListingId(options?.focusListingId ?? null)
   }
 
   const handleLogout = () => {
@@ -101,6 +103,8 @@ export default function Home() {
           userId={userId}
           urgentOnly={urgentOnly}
           onUrgentOnlyChange={handleUrgentOnlyChange}
+          focusListingId={focusListingId}
+          onFocusListingHandled={() => setFocusListingId(null)}
         />
       )}
       {activeNav === 'give-away' && userId && (
