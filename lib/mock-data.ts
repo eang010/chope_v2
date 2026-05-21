@@ -298,5 +298,6 @@ export const categories = [
   'Food & Snacks',
   'Office Essentials',
   'Open Jio',
+  'SOS',
   'Others',
 ]
