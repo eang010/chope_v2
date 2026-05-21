@@ -14,6 +14,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer'
 import { ChopeSheet } from '@/components/feed/chope-sheet'
+import { MediaCarousel } from '@/components/feed/media-carousel'
 import { CountdownTimer } from '@/components/feed/countdown-timer'
 import { Gift, Package, ArrowRight, Clock, MapPin, Mail, Building2, Layers, LogOut } from 'lucide-react'
 import { differenceInHours } from 'date-fns'
@@ -38,10 +39,10 @@ function HotLobangCard({
   return (
     <div className="flex-shrink-0 snap-start w-[calc((min(100vw,32rem)-2rem-0.75rem)/2)] bg-card border border-border rounded-xl overflow-hidden">
       <div className="relative">
-        <img
-          src={listing.media?.[0]?.url}
+        <MediaCarousel
+          media={listing.media || []}
           alt={listing.title}
-          className="w-full h-28 object-cover"
+          className="aspect-auto h-28"
         />
         {listing.ends_at && (
           <div className="absolute top-2 right-2">

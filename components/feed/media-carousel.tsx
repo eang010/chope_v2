@@ -59,7 +59,7 @@ export function MediaCarousel({ media, alt, className }: MediaCarouselProps) {
         className={cn(
           'flex h-full w-full',
           hasMultiple &&
-            'overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide overscroll-x-contain'
+            'overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide overscroll-x-contain touch-pan-x'
         )}
       >
         {media.map((item, index) => (
