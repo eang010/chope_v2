@@ -217,7 +217,7 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
           </label>
           <Input
             id="title"
-            placeholder="e.g., Badminton at MOE Evans"
+            placeholder="e.g., Desk plant"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={100}
@@ -233,7 +233,7 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
           </label>
           <Textarea
             id="description"
-            placeholder="Tell us more about your listing ..."
+            placeholder="My plants are growing too fast, looking for a new home!"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             maxLength={500}
@@ -248,7 +248,7 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
             Quantity available <span className="text-destructive">*</span>
           </label>
           <p className="text-xs text-muted-foreground">
-            How many of this item are you giving away?
+            How many of this items?
           </p>
           <QuantityStepper
             aria-labelledby="quantity-label"
@@ -312,7 +312,7 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
           </p>
           <Textarea
             id="collection-instructions"
-            placeholder="e.g. Level 7 pantry, weekdays after 3pm - message me on Teams first"
+            placeholder="e.g. Level 7 pantry, weekdays after 3pm - ping me on Teams if you're coming by!"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             maxLength={250}
