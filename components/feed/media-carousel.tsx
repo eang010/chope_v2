@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, TouchEvent } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
@@ -12,109 +12,128 @@ interface MediaCarouselProps {
 
 export function MediaCarousel({ media, alt, className }: MediaCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const touchStartX = useRef<number | null>(null)
-  const touchEndX = useRef<number | null>(null)
-  
-  const minSwipeDistance = 50
-  
+  const trackRef = useRef<HTMLDivElement>(null)
+  const slideRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  const hasMultiple = media.length > 1
+
+  const updateIndexFromScroll = useCallback(() => {
+    const track = trackRef.current
+    if (!track || !hasMultiple) return
+
+    const index = Math.round(track.scrollLeft / track.clientWidth)
+    setCurrentIndex(Math.min(Math.max(0, index), media.length - 1))
+  }, [hasMultiple, media.length])
+
+  useEffect(() => {
+    const track = trackRef.current
+    if (!track || !hasMultiple) return
+
+    updateIndexFromScroll()
+    track.addEventListener('scroll', updateIndexFromScroll, { passive: true })
+    return () => track.removeEventListener('scroll', updateIndexFromScroll)
+  }, [hasMultiple, media.length, updateIndexFromScroll])
+
+  const scrollToIndex = (index: number) => {
+    slideRefs.current[index]?.scrollIntoView({
+      inline: 'start',
+      behavior: 'smooth',
+      block: 'nearest',
+    })
+  }
+
   const goToPrevious = () => {
-    setCurrentIndex((prev) => (prev === 0 ? media.length - 1 : prev - 1))
+    if (currentIndex > 0) scrollToIndex(currentIndex - 1)
   }
-  
+
   const goToNext = () => {
-    setCurrentIndex((prev) => (prev === media.length - 1 ? 0 : prev + 1))
+    if (currentIndex < media.length - 1) scrollToIndex(currentIndex + 1)
   }
-  
-  const onTouchStart = (e: TouchEvent) => {
-    touchEndX.current = null
-    touchStartX.current = e.targetTouches[0].clientX
-  }
-  
-  const onTouchMove = (e: TouchEvent) => {
-    touchEndX.current = e.targetTouches[0].clientX
-  }
-  
-  const onTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return
-    
-    const distance = touchStartX.current - touchEndX.current
-    const isLeftSwipe = distance > minSwipeDistance
-    const isRightSwipe = distance < -minSwipeDistance
-    
-    if (isLeftSwipe && media.length > 1) {
-      goToNext()
-    } else if (isRightSwipe && media.length > 1) {
-      goToPrevious()
-    }
-    
-    touchStartX.current = null
-    touchEndX.current = null
-  }
-  
+
   if (media.length === 0) return null
-  
-  const currentMedia = media[currentIndex]
-  
+
   return (
-    <div 
-      className={cn('relative aspect-square bg-muted overflow-hidden', className)}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
-    >
-      {currentMedia.type === 'image' ? (
-        <img
-          src={currentMedia.url}
-          alt={`${alt} - Image ${currentIndex + 1}`}
-          className="w-full h-full object-cover select-none"
-          draggable={false}
-        />
-      ) : (
-        <video
-          src={currentMedia.url}
-          className="w-full h-full object-cover"
-          controls
-          playsInline
-        />
-      )}
-      
-      {/* Navigation arrows - hidden on mobile, visible on larger screens */}
-      {media.length > 1 && (
+    <div className={cn('relative aspect-square bg-muted overflow-hidden', className)}>
+      <div
+        ref={trackRef}
+        className={cn(
+          'flex h-full w-full',
+          hasMultiple &&
+            'overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide overscroll-x-contain'
+        )}
+      >
+        {media.map((item, index) => (
+          <div
+            key={index}
+            ref={(el) => {
+              slideRefs.current[index] = el
+            }}
+            className="h-full w-full shrink-0 flex-[0_0_100%] snap-start overflow-hidden"
+          >
+            {item.type === 'image' ? (
+              <img
+                src={item.url}
+                alt={`${alt} - Image ${index + 1}`}
+                className="w-full h-full object-cover select-none"
+                draggable={false}
+              />
+            ) : (
+              <video
+                src={item.url}
+                className="w-full h-full object-cover"
+                controls
+                playsInline
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {hasMultiple && (
         <>
           <button
+            type="button"
             onClick={goToPrevious}
-            className="absolute left-2 top-1/2 -translate-y-1/2 size-8 rounded-full bg-card/80 backdrop-blur-sm items-center justify-center text-foreground hover:bg-card transition-colors hidden md:flex"
+            disabled={currentIndex === 0}
+            className={cn(
+              'absolute left-2 top-1/2 -translate-y-1/2 size-8 rounded-full bg-card/80 backdrop-blur-sm items-center justify-center text-foreground hover:bg-card transition-colors hidden md:flex',
+              currentIndex === 0 && 'opacity-40 pointer-events-none'
+            )}
             aria-label="Previous image"
           >
             <ChevronLeft className="size-5" />
           </button>
           <button
+            type="button"
             onClick={goToNext}
-            className="absolute right-2 top-1/2 -translate-y-1/2 size-8 rounded-full bg-card/80 backdrop-blur-sm items-center justify-center text-foreground hover:bg-card transition-colors hidden md:flex"
+            disabled={currentIndex === media.length - 1}
+            className={cn(
+              'absolute right-2 top-1/2 -translate-y-1/2 size-8 rounded-full bg-card/80 backdrop-blur-sm items-center justify-center text-foreground hover:bg-card transition-colors hidden md:flex',
+              currentIndex === media.length - 1 && 'opacity-40 pointer-events-none'
+            )}
             aria-label="Next image"
           >
             <ChevronRight className="size-5" />
           </button>
+
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 pointer-events-none">
+            {media.map((_, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => scrollToIndex(index)}
+                className={cn(
+                  'pointer-events-auto size-1.5 rounded-full transition-all',
+                  index === currentIndex
+                    ? 'bg-primary-foreground w-4'
+                    : 'bg-primary-foreground/50 hover:bg-primary-foreground/70'
+                )}
+                aria-label={`Go to image ${index + 1}`}
+                aria-current={index === currentIndex ? 'true' : undefined}
+              />
+            ))}
+          </div>
         </>
-      )}
-      
-      {/* Dots indicator */}
-      {media.length > 1 && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-          {media.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={cn(
-                'size-1.5 rounded-full transition-all',
-                index === currentIndex
-                  ? 'bg-primary-foreground w-4'
-                  : 'bg-primary-foreground/50 hover:bg-primary-foreground/70'
-              )}
-              aria-label={`Go to image ${index + 1}`}
-            />
-          ))}
-        </div>
       )}
     </div>
   )
