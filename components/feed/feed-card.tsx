@@ -4,6 +4,7 @@ import { Listing } from '@/lib/types'
 import type { Listing as DBListing } from '@/lib/db'
 import { Badge } from '@/components/ui/badge'
 import { MediaCarousel } from './media-carousel'
+import { ExpandableDescription } from './expandable-description'
 import { GiverBadge } from './giver-badge'
 import { CountdownTimer } from './countdown-timer'
 import { ChopeSheet } from './chope-sheet'
@@ -74,10 +75,7 @@ export function FeedCard({ listing, userId, onChopeSuccess }: FeedCardProps) {
           {listing.title}
         </h3>
         
-        {/* Description */}
-        <p className="text-muted-foreground text-sm line-clamp-2">
-          {listing.description}
-        </p>
+        <ExpandableDescription description={listing.description} />
         
         {/* Meta row */}
         <div className="flex items-center justify-between text-sm">
