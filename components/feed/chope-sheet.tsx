@@ -165,22 +165,6 @@ export function ChopeSheet({ listing, userId, trigger, onChopeSuccess }: ChopeSh
 
   const listingId = listing.id
 
-  const isPwaStandalone =
-    typeof window !== 'undefined' &&
-    (window.matchMedia('(display-mode: standalone)').matches ||
-      (navigator as Navigator & { standalone?: boolean }).standalone === true)
-
-  const logChopePointer = (phase: string, el: HTMLElement) => {
-    const rect = el.getBoundingClientRect()
-    const cx = rect.left + rect.width / 2
-    const cy = rect.top + rect.height / 2
-    const hit = document.elementFromPoint(cx, cy)
-    const sheetOverlays = document.querySelectorAll('[data-slot="sheet-overlay"]')
-    // #region agent log
-    fetch('http://127.0.0.1:7656/ingest/8f971b13-5dbb-4aba-a36e-c54dc66639fd',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'23361e'},body:JSON.stringify({sessionId:'23361e',runId:'pwa-sheet',location:'chope-sheet.tsx:pointer',message:phase,hypothesisId:'G',data:{listingId,isPwaStandalone,overlayCount:sheetOverlays.length,hitTag:hit?.tagName,hitSlot:hit?.getAttribute('data-slot'),isOpen},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-  }
-
   return (
     <>
     <Sheet
@@ -191,17 +175,11 @@ export function ChopeSheet({ listing, userId, trigger, onChopeSuccess }: ChopeSh
           setIsSubmitted(false)
           setIsSubmitting(false)
         }
-        // #region agent log
-        fetch('http://127.0.0.1:7656/ingest/8f971b13-5dbb-4aba-a36e-c54dc66639fd',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'23361e'},body:JSON.stringify({sessionId:'23361e',runId:'pwa-sheet',location:'chope-sheet.tsx:onOpenChange',message:'sheet state',hypothesisId:'G',data:{listingId,open,isPwaStandalone,overlayCount:document.querySelectorAll('[data-slot="sheet-overlay"]').length},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
       }}
     >
       <SheetTrigger asChild>
         {trigger || (
-          <Button
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base h-12 rounded-xl"
-            onPointerDown={(e) => logChopePointer('chope-pointerdown', e.currentTarget)}
-          >
+          <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base h-12 rounded-xl">
             <Hand className="size-5 mr-2" />
             Chope!
           </Button>
@@ -210,12 +188,6 @@ export function ChopeSheet({ listing, userId, trigger, onChopeSuccess }: ChopeSh
       <SheetContent
         side="bottom"
         className="bg-card gap-0 overflow-y-auto rounded-t-xl p-0 [&>button]:hidden"
-        onPointerDownCapture={(e) => {
-          const target = e.target as HTMLElement
-          // #region agent log
-          fetch('http://127.0.0.1:7656/ingest/8f971b13-5dbb-4aba-a36e-c54dc66639fd',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'23361e'},body:JSON.stringify({sessionId:'23361e',runId:'pwa-sheet',location:'chope-sheet.tsx:sheet-capture',message:'sheet pointer capture',hypothesisId:'G',data:{listingId,isPwaStandalone,hitTag:target.tagName,hitSlot:target.getAttribute('data-slot')},timestamp:Date.now()})}).catch(()=>{});
-          // #endregion
-        }}
       >
         <SheetHeader className="text-left p-4 pb-0">
           <SheetTitle className="text-xl">

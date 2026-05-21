@@ -39,10 +39,6 @@ export function LobangView({
         console.error('Error loading listings:', error)
       } finally {
         setIsLoading(false)
-        const overlays = document.querySelectorAll('[data-slot="drawer-overlay"]')
-        // #region agent log
-        fetch('http://127.0.0.1:7656/ingest/8f971b13-5dbb-4aba-a36e-c54dc66639fd',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'23361e'},body:JSON.stringify({sessionId:'23361e',location:'lobang-view.tsx:loadListings',message:'listings loaded',hypothesisId:'A',data:{listingCount:data.length,overlayCount:overlays.length},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
       }
     }
 
