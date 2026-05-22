@@ -621,6 +621,32 @@ type EditImage =
   | { kind: 'existing'; id: string; url: string }
   | { kind: 'new'; file: File; preview: string }
 
+function defaultEndDateString() {
+  return new Date().toISOString().split('T')[0]
+}
+
+function endsAtToFormFields(endsAt: string | null) {
+  if (!endsAt) {
+    return { hasEndDate: false, endDate: defaultEndDateString(), endTime: '' }
+  }
+  const d = new Date(endsAt)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return {
+    hasEndDate: true,
+    endDate: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+    endTime: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+  }
+}
+
+function formFieldsToEndsAt(
+  hasEndDate: boolean,
+  endDate: string,
+  endTime: string
+): string | null {
+  if (!hasEndDate) return null
+  return `${endDate}T${endTime || '23:59:00'}`
+}
+
 function EditListingDrawer({
   listing,
   open,
@@ -638,6 +664,9 @@ function EditListingDrawer({
   const [location, setLocation] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [images, setImages] = useState<EditImage[]>([])
+  const [hasEndDate, setHasEndDate] = useState(false)
+  const [endDate, setEndDate] = useState(defaultEndDateString)
+  const [endTime, setEndTime] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
@@ -658,6 +687,12 @@ function EditListingDrawer({
         .sort((a, b) => a.display_order - b.display_order)
         .map((m) => ({ kind: 'existing' as const, id: m.id, url: m.url }))
     )
+    const { hasEndDate: urgent, endDate: date, endTime: time } = endsAtToFormFields(
+      listing.ends_at
+    )
+    setHasEndDate(urgent)
+    setEndDate(date)
+    setEndTime(time)
   }, [listing])
 
   useEffect(() => {
@@ -729,6 +764,7 @@ function EditListingDrawer({
         location: trimmedLocation,
         quantity,
         quantity_remaining: quantityRemaining,
+        ends_at: formFieldsToEndsAt(hasEndDate, endDate, endTime),
       })
 
       if (!updatedListing) {
@@ -887,6 +923,62 @@ function EditListingDrawer({
               className="min-h-[80px] rounded-xl resize-none"
             />
             <p className="text-xs text-muted-foreground text-right">{location.length}/250</p>
+          </div>
+
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={() => setHasEndDate(!hasEndDate)}
+              className={cn(
+                'w-full p-3 rounded-xl border flex items-center gap-3 transition-colors',
+                hasEndDate ? 'border-primary bg-primary/10' : 'border-border'
+              )}
+            >
+              <Clock className={cn('size-5', hasEndDate ? 'text-primary' : 'text-muted-foreground')} />
+              <div className="text-left flex-1">
+                <p className="font-medium text-sm text-foreground">Hot Lobang (end date)</p>
+                <p className="text-xs text-muted-foreground">
+                  Show in urgent feeds with a countdown until this time
+                </p>
+              </div>
+              <div
+                className={cn(
+                  'size-5 rounded-full border-2 flex items-center justify-center shrink-0',
+                  hasEndDate ? 'border-primary bg-primary' : 'border-muted-foreground'
+                )}
+              >
+                {hasEndDate && <Check className="size-3 text-primary-foreground" />}
+              </div>
+            </button>
+
+            {hasEndDate && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label htmlFor="edit-end-date" className="text-xs text-muted-foreground">
+                    Date
+                  </label>
+                  <Input
+                    id="edit-end-date"
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="h-11 rounded-xl"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label htmlFor="edit-end-time" className="text-xs text-muted-foreground">
+                    Time
+                  </label>
+                  <Input
+                    id="edit-end-time"
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    className="h-11 rounded-xl"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <DrawerFooter>

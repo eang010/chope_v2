@@ -450,7 +450,13 @@ export async function updateListingQuantity(listingId: string, newQuantity: numb
 
 export type ListingUpdateFields = Pick<
   Listing,
-  'title' | 'description' | 'category' | 'location' | 'quantity' | 'quantity_remaining'
+  | 'title'
+  | 'description'
+  | 'category'
+  | 'location'
+  | 'quantity'
+  | 'quantity_remaining'
+  | 'ends_at'
 >
 
 export async function updateListing(
