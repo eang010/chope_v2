@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -16,6 +16,15 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer'
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import {
   Select,
   SelectContent,
@@ -648,6 +657,9 @@ function EditListingDrawer({
   const [endTime, setEndTime] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const imagesRef = useRef(images)
+  imagesRef.current = images
 
   const chopedCount = listing
     ? listing.quantity - listing.quantity_remaining
@@ -675,11 +687,11 @@ function EditListingDrawer({
 
   useEffect(() => {
     return () => {
-      images.forEach((img) => {
+      imagesRef.current.forEach((img) => {
         if (img.kind === 'new') URL.revokeObjectURL(img.preview)
       })
     }
-  }, [images])
+  }, [])
 
   const removeImage = (index: number) => {
     setImages((prev) => {
@@ -781,13 +793,16 @@ function EditListingDrawer({
     title.trim() && category && location.trim() && images.length > 0 && quantity >= minQuantity
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="bg-card max-h-[90vh]">
-        <DrawerHeader className="text-left">
-          <DrawerTitle>Edit Listing</DrawerTitle>
-          <DrawerDescription>Make changes to your listing</DrawerDescription>
-        </DrawerHeader>
-        <div className="px-4 pb-4 space-y-4 overflow-y-auto max-h-[60vh]">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="bottom"
+        className="bg-card gap-0 overflow-y-auto rounded-t-xl p-0 max-h-[90dvh] [&>button]:hidden"
+      >
+        <SheetHeader className="text-left p-4 pb-2">
+          <SheetTitle>Edit Listing</SheetTitle>
+          <SheetDescription>Make changes to your listing</SheetDescription>
+        </SheetHeader>
+        <div className="px-4 pb-4 space-y-4 overflow-y-auto flex-1 min-h-0">
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">
               Photos <span className="text-destructive">*</span>
@@ -797,7 +812,10 @@ function EditListingDrawer({
             </p>
             <div className="flex gap-2 flex-wrap">
               {images.map((img, index) => (
-                <div key={index} className="relative size-20 rounded-lg overflow-hidden bg-muted">
+                <div
+                  key={img.kind === 'existing' ? img.id : img.preview}
+                  className="relative size-20 rounded-lg overflow-hidden bg-muted"
+                >
                   <img
                     src={img.kind === 'existing' ? img.url : img.preview}
                     alt={`Photo ${index + 1}`}
@@ -818,17 +836,26 @@ function EditListingDrawer({
                 </div>
               ))}
               {images.length < 5 && (
-                <label className="size-20 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors cursor-pointer">
-                  <ImagePlus className="size-6 mb-1" />
-                  <span className="text-xs">Add</span>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="size-20 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                  >
+                    <ImagePlus className="size-6 mb-1" />
+                    <span className="text-xs">Add</span>
+                  </button>
                   <input
+                    ref={fileInputRef}
                     type="file"
                     multiple
                     accept="image/*"
                     onChange={handleImageUpload}
-                    className="hidden"
+                    className="sr-only"
+                    tabIndex={-1}
+                    aria-hidden
                   />
-                </label>
+                </>
               )}
             </div>
           </div>
@@ -959,7 +986,7 @@ function EditListingDrawer({
             )}
           </div>
         </div>
-        <DrawerFooter>
+        <SheetFooter className="p-4 pt-2">
           <Button
             onClick={handleSave}
             disabled={isSaving || saved || !canSave}
@@ -969,12 +996,12 @@ function EditListingDrawer({
               <><Check className="size-5 mr-2" />Saved!</>
             ) : isSaving ? 'Saving...' : 'Save Changes'}
           </Button>
-          <DrawerClose asChild>
+          <SheetClose asChild>
             <Button variant="ghost" className="w-full h-11 rounded-xl">Cancel</Button>
-          </DrawerClose>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+          </SheetClose>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }
 

@@ -72,18 +72,53 @@ export async function getUserById(id: string): Promise<User | null> {
 }
 
 // Image Upload Functions
-export async function uploadListingImage(file: File): Promise<string | null> {
-  const supabase = createClient()
-  
-  // Generate a unique filename
+function listingImageUploadName(file: File): { filename: string; contentType: string } {
   const timestamp = Date.now()
   const random = Math.random().toString(36).substring(2, 8)
-  const filename = `${timestamp}-${random}-${file.name}`
-  
+  const rawExt = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || ''
+  const ext =
+    rawExt && ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif'].includes(rawExt)
+      ? rawExt === 'jpeg'
+        ? 'jpg'
+        : rawExt
+      : file.type.includes('png')
+        ? 'png'
+        : file.type.includes('gif')
+          ? 'gif'
+          : file.type.includes('webp')
+            ? 'webp'
+            : 'jpg'
+  const contentType =
+    file.type ||
+    (ext === 'png'
+      ? 'image/png'
+      : ext === 'gif'
+        ? 'image/gif'
+        : ext === 'webp'
+          ? 'image/webp'
+          : ext === 'heic' || ext === 'heif'
+            ? 'image/heic'
+            : 'image/jpeg')
+  return {
+    filename: `${timestamp}-${random}.${ext}`,
+    contentType,
+  }
+}
+
+export async function uploadListingImage(file: File): Promise<string | null> {
+  const supabase = createClient()
+
+  if (!file.size) {
+    console.error('Error uploading image: empty file')
+    return null
+  }
+
+  const { filename, contentType } = listingImageUploadName(file)
+
   // Upload to Supabase Storage
   const { data, error } = await supabase.storage
     .from('listing-images')
-    .upload(filename, file)
+    .upload(filename, file, { contentType, upsert: false })
   
   if (error) {
     console.error('Error uploading image:', error)
