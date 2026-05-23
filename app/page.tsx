@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { AppShell } from '@/components/layout/app-shell'
+import { TabPanel } from '@/components/layout/tab-panel'
 import { HomeView } from '@/components/views/home-view'
 import { LobangView } from '@/components/views/lobang-view'
 import { GiveAwayView } from '@/components/views/give-away-view'
@@ -192,26 +193,32 @@ export default function Home() {
 
   return (
     <AppShell activeNav={activeNav} onNavigate={(nav) => handleNavigate(nav)}>
-      {activeNav === 'home' && userId && (
-        <HomeView
-          userId={userId}
-          onNavigate={(nav, options) => handleNavigate(nav as NavItem, options)}
-          onLogout={handleLogout}
-        />
+      {userId && (
+        <>
+          <TabPanel active={activeNav === 'home'}>
+            <HomeView
+              userId={userId}
+              onNavigate={(nav, options) => handleNavigate(nav as NavItem, options)}
+              onLogout={handleLogout}
+            />
+          </TabPanel>
+          <TabPanel active={activeNav === 'lobang'}>
+            <LobangView
+              userId={userId}
+              urgentOnly={urgentOnly}
+              onUrgentOnlyChange={handleUrgentOnlyChange}
+              focusListingId={focusListingId}
+              onFocusListingHandled={() => setFocusListingId(null)}
+            />
+          </TabPanel>
+          <TabPanel active={activeNav === 'give-away'}>
+            <GiveAwayView userId={userId} onNavigate={(nav) => handleNavigate(nav as NavItem)} />
+          </TabPanel>
+          <TabPanel active={activeNav === 'my-stuff'}>
+            <MyStuffView userId={userId} />
+          </TabPanel>
+        </>
       )}
-      {activeNav === 'lobang' && userId && (
-        <LobangView
-          userId={userId}
-          urgentOnly={urgentOnly}
-          onUrgentOnlyChange={handleUrgentOnlyChange}
-          focusListingId={focusListingId}
-          onFocusListingHandled={() => setFocusListingId(null)}
-        />
-      )}
-      {activeNav === 'give-away' && userId && (
-        <GiveAwayView userId={userId} onNavigate={(nav) => handleNavigate(nav as NavItem)} />
-      )}
-      {activeNav === 'my-stuff' && userId && <MyStuffView userId={userId} />}
     </AppShell>
   )
 }
