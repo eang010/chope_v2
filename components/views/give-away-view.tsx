@@ -16,6 +16,7 @@ import { categories } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
 import { Gift, ImagePlus, X, MapPin, Clock, Check } from 'lucide-react'
 import { createListing, uploadListingImage } from '@/lib/db'
+import { buildEndsAtIsoInSingapore, todayInSingapore } from '@/lib/singapore-time'
 
 const conditions = [
   { value: 'new', label: 'New', description: 'Never used, still in packaging' },
@@ -39,10 +40,7 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
   const [location, setLocation] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [hasEndDate, setHasEndDate] = useState(false)
-  const [endDate, setEndDate] = useState(() => {
-    const today = new Date()
-    return today.toISOString().split('T')[0]
-  })
+  const [endDate, setEndDate] = useState(todayInSingapore)
   const [endTime, setEndTime] = useState('')
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -57,7 +55,7 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
     setIsSubmitting(true)
 
     try {
-      const endsAt = hasEndDate ? `${endDate}T${endTime || '23:59:00'}` : null
+      const endsAt = buildEndsAtIsoInSingapore(hasEndDate, endDate, endTime)
 
       // Upload images to Supabase Storage
       const uploadedUrls: string[] = []
@@ -346,7 +344,7 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
           {hasEndDate && (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label htmlFor="end-date" className="text-xs text-muted-foreground">Date</label>
+                <label htmlFor="end-date" className="text-xs text-muted-foreground">Date (SGT)</label>
                 <Input
                   id="end-date"
                   type="date"
@@ -356,7 +354,7 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
                 />
               </div>
               <div className="space-y-1">
-                <label htmlFor="end-time" className="text-xs text-muted-foreground">Time</label>
+                <label htmlFor="end-time" className="text-xs text-muted-foreground">Time (SGT)</label>
                 <Input
                   id="end-time"
                   type="time"
