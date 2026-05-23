@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select'
 import { categories } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
+import { PageHeader } from '@/components/layout/page-header'
 import { Gift, ImagePlus, X, MapPin, Clock, Check } from 'lucide-react'
 import { createListing, uploadListingImage } from '@/lib/db'
 import { buildEndsAtIsoInSingapore, todayInSingapore } from '@/lib/singapore-time'
@@ -153,16 +154,11 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
 
   return (
     <div className="space-y-6 pt-4 pb-8">
-      {/* Header */}
-      <header className="px-4">
-        <div className="flex items-center gap-2 mb-1">
-          <Gift className="size-6 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">List Away</h1>
-        </div>
-        <p className="text-muted-foreground text-sm">
-          Share anything and everything with the community
-        </p>
-      </header>
+      <PageHeader
+        icon={<Gift className="size-6 text-primary shrink-0" />}
+        title="List Away"
+        description="Share anything and everything with the community"
+      />
 
       <div className="px-4 space-y-6">
         {/* Image upload */}

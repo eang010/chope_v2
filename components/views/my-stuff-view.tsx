@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { PageHeader } from '@/components/layout/page-header'
 import { categories } from '@/lib/mock-data'
 import { prepareListingImageFile } from '@/lib/prepare-listing-image'
 import {
@@ -1267,13 +1268,10 @@ export function MyStuffView({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-6 pt-4 pb-8">
-      {/* Header */}
-      <header className="px-4">
-        <div className="flex items-center gap-2 mb-1">
-          <User className="size-6 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">My Stuff</h1>
-        </div>
-      </header>
+      <PageHeader
+        icon={<User className="size-6 text-primary shrink-0" />}
+        title="My Stuff"
+      />
 
       {/* Profile card */}
       <section className="px-4">

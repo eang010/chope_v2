@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { categories } from '@/lib/mock-data'
 import { FeedCard } from '@/components/feed/feed-card'
+import { PageHeader } from '@/components/layout/page-header'
 import { cn } from '@/lib/utils'
 import { Compass, Flame, X } from 'lucide-react'
 import { differenceInHours } from 'date-fns'
@@ -103,22 +104,19 @@ export function LobangView({
 
   return (
     <div className="space-y-4 pt-4">
-      {/* Header */}
-      <header className="px-4">
-        <div className="flex items-center gap-2 mb-1">
-          {urgentOnly ? (
-            <Flame className="size-6 text-destructive" />
+      <PageHeader
+        icon={
+          urgentOnly ? (
+            <Flame className="size-6 text-destructive shrink-0" />
           ) : (
-            <Compass className="size-6 text-primary" />
-          )}
-          <h1 className="text-2xl font-bold text-foreground">
-            {urgentOnly ? 'Hot Lobangs' : 'Lobang'}
-          </h1>
-        </div>
-        <p className="text-muted-foreground text-sm">
-          {urgentOnly ? 'Grab them before they\'re gone!' : 'Browse freebies near you'}
-        </p>
-      </header>
+            <Compass className="size-6 text-primary shrink-0" />
+          )
+        }
+        title={urgentOnly ? 'Hot Lobangs' : 'Lobang'}
+        description={
+          urgentOnly ? "Grab them before they're gone!" : 'Browse freebies near you'
+        }
+      />
 
       {/* Urgent filter banner */}
       {urgentOnly && onUrgentOnlyChange && (
