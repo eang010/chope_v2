@@ -1,4 +1,5 @@
 import { createClient } from './supabase/client'
+import { prepareListingImageFile } from './prepare-listing-image'
 
 export interface User {
   id: string
@@ -75,30 +76,15 @@ export async function getUserById(id: string): Promise<User | null> {
 function listingImageUploadName(file: File): { filename: string; contentType: string } {
   const timestamp = Date.now()
   const random = Math.random().toString(36).substring(2, 8)
-  const rawExt = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || ''
+  const contentType = file.type || 'image/jpeg'
   const ext =
-    rawExt && ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif'].includes(rawExt)
-      ? rawExt === 'jpeg'
-        ? 'jpg'
-        : rawExt
-      : file.type.includes('png')
-        ? 'png'
-        : file.type.includes('gif')
+    contentType === 'image/png'
+      ? 'png'
+      : contentType === 'image/webp'
+        ? 'webp'
+        : contentType === 'image/gif'
           ? 'gif'
-          : file.type.includes('webp')
-            ? 'webp'
-            : 'jpg'
-  const contentType =
-    file.type ||
-    (ext === 'png'
-      ? 'image/png'
-      : ext === 'gif'
-        ? 'image/gif'
-        : ext === 'webp'
-          ? 'image/webp'
-          : ext === 'heic' || ext === 'heif'
-            ? 'image/heic'
-            : 'image/jpeg')
+          : 'jpg'
   return {
     filename: `${timestamp}-${random}.${ext}`,
     contentType,
@@ -108,20 +94,28 @@ function listingImageUploadName(file: File): { filename: string; contentType: st
 export async function uploadListingImage(file: File): Promise<string | null> {
   const supabase = createClient()
 
-  if (!file.size) {
-    console.error('Error uploading image: empty file')
+  let uploadFile: File
+  try {
+    uploadFile = await prepareListingImageFile(file)
+  } catch (error) {
+    console.error('Error preparing image:', error)
     return null
   }
 
-  const { filename, contentType } = listingImageUploadName(file)
+  if (!uploadFile.size) {
+    console.error('Error uploading image: empty file after prepare')
+    return null
+  }
 
-  // Upload to Supabase Storage
-  const { data, error } = await supabase.storage
+  const { filename, contentType } = listingImageUploadName(uploadFile)
+  const body = await uploadFile.arrayBuffer()
+
+  const { error } = await supabase.storage
     .from('listing-images')
-    .upload(filename, file, { contentType, upsert: false })
-  
+    .upload(filename, body, { contentType, upsert: false })
+
   if (error) {
-    console.error('Error uploading image:', error)
+    console.error('Error uploading image:', error.message, error)
     return null
   }
   

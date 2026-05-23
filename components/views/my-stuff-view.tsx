@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { categories } from '@/lib/mock-data'
+import { prepareListingImageFile } from '@/lib/prepare-listing-image'
 import {
   buildEndsAtIsoInSingapore,
   parseEndsAtToSingaporeForm,
@@ -656,6 +657,7 @@ function EditListingDrawer({
   const [endDate, setEndDate] = useState(todayInSingapore)
   const [endTime, setEndTime] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [isPreparingPhotos, setIsPreparingPhotos] = useState(false)
   const [saved, setSaved] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const imagesRef = useRef(images)
@@ -701,17 +703,34 @@ function EditListingDrawer({
     })
   }
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
-    if (!files) return
+    if (!files?.length) return
     const newFiles = Array.from(files).slice(0, 5 - images.length)
-    const newImages: EditImage[] = newFiles.map((file) => ({
-      kind: 'new',
-      file,
-      preview: URL.createObjectURL(file),
-    }))
-    setImages((prev) => [...prev, ...newImages])
     e.target.value = ''
+
+    setIsPreparingPhotos(true)
+    const added: EditImage[] = []
+    try {
+      for (const file of newFiles) {
+        try {
+          const prepared = await prepareListingImageFile(file)
+          added.push({
+            kind: 'new',
+            file: prepared,
+            preview: URL.createObjectURL(prepared),
+          })
+        } catch (err) {
+          console.error('Failed to prepare photo:', err)
+          alert('Could not use that photo. Try another image or take a new photo.')
+        }
+      }
+      if (added.length > 0) {
+        setImages((prev) => [...prev, ...added])
+      }
+    } finally {
+      setIsPreparingPhotos(false)
+    }
   }
 
   const handleSave = async () => {
@@ -790,7 +809,12 @@ function EditListingDrawer({
   }
 
   const canSave =
-    title.trim() && category && location.trim() && images.length > 0 && quantity >= minQuantity
+    title.trim() &&
+    category &&
+    location.trim() &&
+    images.length > 0 &&
+    quantity >= minQuantity &&
+    !isPreparingPhotos
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -839,11 +863,12 @@ function EditListingDrawer({
                 <>
                   <button
                     type="button"
+                    disabled={isPreparingPhotos || isSaving}
                     onClick={() => fileInputRef.current?.click()}
-                    className="size-20 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                    className="size-20 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
                   >
                     <ImagePlus className="size-6 mb-1" />
-                    <span className="text-xs">Add</span>
+                    <span className="text-xs">{isPreparingPhotos ? '…' : 'Add'}</span>
                   </button>
                   <input
                     ref={fileInputRef}

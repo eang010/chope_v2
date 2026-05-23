@@ -22,12 +22,27 @@ create policy "Anon upload listing images"
   to anon
   with check (bucket_id = 'listing-images');
 
+create policy "Authenticated upload listing images"
+  on storage.objects for insert
+  to authenticated
+  with check (bucket_id = 'listing-images');
+
 create policy "Anon update listing images"
   on storage.objects for update
   to anon
   using (bucket_id = 'listing-images');
 
+create policy "Authenticated update listing images"
+  on storage.objects for update
+  to authenticated
+  using (bucket_id = 'listing-images');
+
 create policy "Anon delete listing images"
   on storage.objects for delete
   to anon
+  using (bucket_id = 'listing-images');
+
+create policy "Authenticated delete listing images"
+  on storage.objects for delete
+  to authenticated
   using (bucket_id = 'listing-images');
