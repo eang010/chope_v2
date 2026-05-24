@@ -140,6 +140,18 @@
   display: none;
 }
 
+/* Side-by-side date/time row: minmax(0,1fr) stops iOS WebKit inputs from overflowing */
+.datetime-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.datetime-fields > * {
+  min-width: 0;
+  overflow: hidden;
+}
+
 /* iOS Safari / PWA standalone: keep modal layers above page and capture touches */
 @supports (-webkit-touch-callout: none) {
   [data-slot='drawer-overlay'][data-state='open'],
@@ -190,12 +202,6 @@
   input[type='time'][data-slot='input']::-webkit-date-and-time-value {
     min-width: 0;
     text-align: left;
-  }
-
-  .datetime-fields > * {
-    width: 100%;
-    flex-shrink: 0;
-    isolation: isolate;
   }
 }
 

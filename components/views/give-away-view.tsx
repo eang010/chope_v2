@@ -338,7 +338,7 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
           </button>
 
           {hasEndDate && (
-            <div className="datetime-fields flex flex-col gap-3">
+            <div className="datetime-fields">
               <div className="space-y-1 min-w-0 w-full">
                 <label htmlFor="end-date" className="text-xs text-muted-foreground">Date (SGT)</label>
                 <Input
