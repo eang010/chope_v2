@@ -202,6 +202,7 @@ export default function Home() {
               refreshKey={listingsRefreshKey}
               onNavigate={(nav, options) => handleNavigate(nav as NavItem, options)}
               onLogout={handleLogout}
+              onChopeActivity={() => setListingsRefreshKey((k) => k + 1)}
             />
           </TabPanel>
           <TabPanel active={activeNav === 'lobang'}>
@@ -211,6 +212,7 @@ export default function Home() {
               onUrgentOnlyChange={handleUrgentOnlyChange}
               focusListingId={focusListingId}
               onFocusListingHandled={() => setFocusListingId(null)}
+              onChopeActivity={() => setListingsRefreshKey((k) => k + 1)}
             />
           </TabPanel>
           <TabPanel active={activeNav === 'give-away'}>

@@ -16,6 +16,7 @@ interface LobangViewProps {
   onUrgentOnlyChange?: (urgentOnly: boolean) => void
   focusListingId?: string | null
   onFocusListingHandled?: () => void
+  onChopeActivity?: () => void
 }
 
 export function LobangView({
@@ -24,6 +25,7 @@ export function LobangView({
   onUrgentOnlyChange,
   focusListingId,
   onFocusListingHandled,
+  onChopeActivity,
 }: LobangViewProps) {
   const [activeCategory, setActiveCategory] = useState('All')
   const [listings, setListings] = useState<Listing[]>([])
@@ -80,6 +82,7 @@ export function LobangView({
         l.id === listingId ? { ...l, quantity_remaining: newQuantityRemaining } : l
       )
     )
+    onChopeActivity?.()
   }
 
   // Non-archived listings from getAllListings; include fully choped for visibility

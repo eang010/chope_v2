@@ -27,6 +27,7 @@ interface HomeViewProps {
   refreshKey?: number
   onNavigate: (nav: 'lobang' | 'give-away' | 'my-stuff', options?: NavigateOptions) => void
   onLogout: () => void
+  onChopeActivity?: () => void
 }
 
 function HotLobangCard({
@@ -90,7 +91,13 @@ function HotLobangCard({
   )
 }
 
-export function HomeView({ userId, refreshKey = 0, onNavigate, onLogout }: HomeViewProps) {
+export function HomeView({
+  userId,
+  refreshKey = 0,
+  onNavigate,
+  onLogout,
+  onChopeActivity,
+}: HomeViewProps) {
   const [user, setUser] = useState<User | null>(null)
   const [hotLobangs, setHotLobangs] = useState<Listing[]>([])
   const [givenCount, setGivenCount] = useState(0)
@@ -144,6 +151,7 @@ export function HomeView({ userId, refreshKey = 0, onNavigate, onLogout }: HomeV
         l.id === listingId ? { ...l, quantity_remaining: newQuantityRemaining } : l
       )
     )
+    onChopeActivity?.()
   }
 
   return (
