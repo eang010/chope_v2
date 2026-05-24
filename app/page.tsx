@@ -208,6 +208,7 @@ export default function Home() {
           <TabPanel active={activeNav === 'lobang'}>
             <LobangView
               userId={userId}
+              refreshKey={listingsRefreshKey}
               urgentOnly={urgentOnly}
               onUrgentOnlyChange={handleUrgentOnlyChange}
               focusListingId={focusListingId}
@@ -223,7 +224,11 @@ export default function Home() {
             />
           </TabPanel>
           <TabPanel active={activeNav === 'my-stuff'}>
-            <MyStuffView userId={userId} refreshKey={listingsRefreshKey} />
+            <MyStuffView
+              userId={userId}
+              refreshKey={listingsRefreshKey}
+              onListingActivity={() => setListingsRefreshKey((k) => k + 1)}
+            />
           </TabPanel>
         </>
       )}

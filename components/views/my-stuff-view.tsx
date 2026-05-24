@@ -1170,7 +1170,15 @@ function ProfileEditDrawer({
 
 // ----- Main View -----
 
-export function MyStuffView({ userId, refreshKey = 0 }: { userId: string; refreshKey?: number }) {
+export function MyStuffView({
+  userId,
+  refreshKey = 0,
+  onListingActivity,
+}: {
+  userId: string
+  refreshKey?: number
+  onListingActivity?: () => void
+}) {
   const [user, setUser] = useState<DBUser | null>(null)
   const [chopes, setChopes] = useState<DBChope[]>([])
   const [givenCount, setGivenCount] = useState(0)
@@ -1220,6 +1228,7 @@ export function MyStuffView({ userId, refreshKey = 0 }: { userId: string; refres
 
   const handleSaveEdit = (updated: DBListingWithChopes) => {
     setActiveListings(prev => prev.map(l => l.id === updated.id ? updated : l))
+    onListingActivity?.()
   }
 
   const handleArchive = async (listing: DBListingWithChopes) => {
@@ -1227,12 +1236,14 @@ export function MyStuffView({ userId, refreshKey = 0 }: { userId: string; refres
     if (!success) return
     setActiveListings(prev => prev.filter(l => l.id !== listing.id))
     setArchivedListings(prev => [{ ...listing, is_archived: true }, ...prev])
+    onListingActivity?.()
   }
 
   const handleDelete = async (listing: DBListingWithChopes) => {
     const success = await deleteListing(listing.id)
     if (success) {
       setActiveListings(prev => prev.filter(l => l.id !== listing.id))
+      onListingActivity?.()
     }
   }
 
@@ -1240,6 +1251,7 @@ export function MyStuffView({ userId, refreshKey = 0 }: { userId: string; refres
     const success = await deleteListing(listing.id)
     if (success) {
       setArchivedListings(prev => prev.filter(l => l.id !== listing.id))
+      onListingActivity?.()
     }
   }
 
@@ -1248,6 +1260,7 @@ export function MyStuffView({ userId, refreshKey = 0 }: { userId: string; refres
     if (!success) return
     setArchivedListings(prev => prev.filter(l => l.id !== listing.id))
     setActiveListings(prev => [{ ...listing, is_archived: false }, ...prev])
+    onListingActivity?.()
   }
 
   const handleUnchope = (chopeId: string) => {

@@ -12,6 +12,7 @@ import type { Listing } from '@/lib/db'
 
 interface LobangViewProps {
   userId: string
+  refreshKey?: number
   urgentOnly?: boolean
   onUrgentOnlyChange?: (urgentOnly: boolean) => void
   focusListingId?: string | null
@@ -46,7 +47,7 @@ export function LobangView({
     }
 
     loadListings()
-  }, [])
+  }, [refreshKey])
 
   useEffect(() => {
     if (!focusListingId || isLoading) return
