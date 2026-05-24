@@ -156,6 +156,47 @@
     transform: translateZ(0);
     -webkit-overflow-scrolling: touch;
   }
+
+  /* WebKit date/time pickers ignore width unless min-logical-width is reset */
+  .datetime-input,
+  input[type='date'][data-slot='input'],
+  input[type='time'][data-slot='input'] {
+    -webkit-min-logical-width: 0;
+    min-width: 0;
+    max-width: 100%;
+    display: block;
+    overflow: hidden;
+  }
+
+  .datetime-input::-webkit-datetime-edit,
+  input[type='date'][data-slot='input']::-webkit-datetime-edit,
+  input[type='time'][data-slot='input']::-webkit-datetime-edit {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .datetime-input::-webkit-datetime-edit-fields-wrapper,
+  input[type='date'][data-slot='input']::-webkit-datetime-edit-fields-wrapper,
+  input[type='time'][data-slot='input']::-webkit-datetime-edit-fields-wrapper {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .datetime-input::-webkit-date-and-time-value,
+  input[type='date'][data-slot='input']::-webkit-date-and-time-value,
+  input[type='time'][data-slot='input']::-webkit-date-and-time-value {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .datetime-fields > * {
+    width: 100%;
+    flex-shrink: 0;
+    isolation: isolate;
+  }
 }
 
 @media (display-mode: standalone) {

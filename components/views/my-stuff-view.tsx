@@ -983,8 +983,8 @@ function EditListingDrawer({
             </button>
 
             {hasEndDate && (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+              <div className="datetime-fields flex flex-col gap-3">
+                <div className="space-y-1 min-w-0 w-full">
                   <label htmlFor="edit-end-date" className="text-xs text-muted-foreground">
                     Date (SGT)
                   </label>
@@ -993,10 +993,10 @@ function EditListingDrawer({
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="h-11 rounded-xl"
+                    className="h-11 rounded-xl w-full min-w-0"
                   />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 min-w-0 w-full">
                   <label htmlFor="edit-end-time" className="text-xs text-muted-foreground">
                     Time (SGT)
                   </label>
@@ -1005,7 +1005,7 @@ function EditListingDrawer({
                     type="time"
                     value={endTime}
                     onChange={(e) => setEndTime(e.target.value)}
-                    className="h-11 rounded-xl"
+                    className="h-11 rounded-xl w-full min-w-0"
                   />
                 </div>
               </div>
