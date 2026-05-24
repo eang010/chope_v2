@@ -17,8 +17,8 @@ import { ChopeSheet } from '@/components/feed/chope-sheet'
 import { MediaCarousel } from '@/components/feed/media-carousel'
 import { CountdownTimer } from '@/components/feed/countdown-timer'
 import { Gift, Package, ArrowRight, Clock, MapPin, Mail, Building2, Layers, LogOut } from 'lucide-react'
-import { differenceInHours } from 'date-fns'
 import { getAllListings, getUserById, getGivenCount, getChopedCount } from '@/lib/db'
+import { buildHotLobangsList } from '@/lib/hot-lobangs'
 import type { Listing, User } from '@/lib/db'
 import type { NavigateOptions } from '@/lib/types'
 
@@ -119,22 +119,7 @@ export function HomeView({
         setGivenCount(given)
         setChopedCount(choped)
 
-        // Listings with an end date, not yet ended, soonest first
-        const now = new Date()
-        const urgent = listings
-          .filter((l) => {
-            if (!l.ends_at) return false
-            const hoursRemaining = differenceInHours(new Date(l.ends_at), now)
-            return hoursRemaining >= 0
-          })
-          .sort((a, b) => {
-            const aTime = a.ends_at ? new Date(a.ends_at).getTime() : 0
-            const bTime = b.ends_at ? new Date(b.ends_at).getTime() : 0
-            return aTime - bTime
-          })
-          .slice(0, 6)
-
-        setHotLobangs(urgent)
+        setHotLobangs(buildHotLobangsList(listings))
       } catch (error) {
         console.error('Error loading home data:', error)
       } finally {
