@@ -24,6 +24,7 @@ import type { NavigateOptions } from '@/lib/types'
 
 interface HomeViewProps {
   userId: string
+  refreshKey?: number
   onNavigate: (nav: 'lobang' | 'give-away' | 'my-stuff', options?: NavigateOptions) => void
   onLogout: () => void
 }
@@ -89,7 +90,7 @@ function HotLobangCard({
   )
 }
 
-export function HomeView({ userId, onNavigate, onLogout }: HomeViewProps) {
+export function HomeView({ userId, refreshKey = 0, onNavigate, onLogout }: HomeViewProps) {
   const [user, setUser] = useState<User | null>(null)
   const [hotLobangs, setHotLobangs] = useState<Listing[]>([])
   const [givenCount, setGivenCount] = useState(0)
@@ -135,7 +136,7 @@ export function HomeView({ userId, onNavigate, onLogout }: HomeViewProps) {
     }
 
     loadData()
-  }, [userId])
+  }, [userId, refreshKey])
 
   const handleChopeSuccess = (listingId: string, newQuantityRemaining: number) => {
     setHotLobangs((prev) =>

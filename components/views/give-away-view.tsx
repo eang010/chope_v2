@@ -29,9 +29,10 @@ const conditions = [
 interface GiveAwayViewProps {
   userId: string
   onNavigate: (nav: 'home') => void
+  onListingCreated?: () => void
 }
 
-export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
+export function GiveAwayView({ userId, onNavigate, onListingCreated }: GiveAwayViewProps) {
   const [images, setImages] = useState<File[]>([])
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [title, setTitle] = useState('')
@@ -95,6 +96,7 @@ export function GiveAwayView({ userId, onNavigate }: GiveAwayViewProps) {
       const result = await createListing(listingData, media)
 
       if (result) {
+        onListingCreated?.()
         setIsSubmitted(true)
         setTimeout(() => {
           onNavigate('home')

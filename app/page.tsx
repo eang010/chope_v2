@@ -41,6 +41,7 @@ export default function Home() {
   const [focusListingId, setFocusListingId] = useState<string | null>(
     () => initialNavState().focusListingId
   )
+  const [listingsRefreshKey, setListingsRefreshKey] = useState(0)
   const navStateRef = useRef<AppNavState>(initialNavState())
   const historyReadyRef = useRef(false)
   const historyStackRef = useRef<AppNavState[]>([])
@@ -198,6 +199,7 @@ export default function Home() {
           <TabPanel active={activeNav === 'home'}>
             <HomeView
               userId={userId}
+              refreshKey={listingsRefreshKey}
               onNavigate={(nav, options) => handleNavigate(nav as NavItem, options)}
               onLogout={handleLogout}
             />
@@ -212,10 +214,14 @@ export default function Home() {
             />
           </TabPanel>
           <TabPanel active={activeNav === 'give-away'}>
-            <GiveAwayView userId={userId} onNavigate={(nav) => handleNavigate(nav as NavItem)} />
+            <GiveAwayView
+              userId={userId}
+              onNavigate={(nav) => handleNavigate(nav as NavItem)}
+              onListingCreated={() => setListingsRefreshKey((k) => k + 1)}
+            />
           </TabPanel>
           <TabPanel active={activeNav === 'my-stuff'}>
-            <MyStuffView userId={userId} />
+            <MyStuffView userId={userId} refreshKey={listingsRefreshKey} />
           </TabPanel>
         </>
       )}

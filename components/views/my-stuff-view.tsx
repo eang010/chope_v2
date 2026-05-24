@@ -1170,7 +1170,7 @@ function ProfileEditDrawer({
 
 // ----- Main View -----
 
-export function MyStuffView({ userId }: { userId: string }) {
+export function MyStuffView({ userId, refreshKey = 0 }: { userId: string; refreshKey?: number }) {
   const [user, setUser] = useState<DBUser | null>(null)
   const [chopes, setChopes] = useState<DBChope[]>([])
   const [givenCount, setGivenCount] = useState(0)
@@ -1211,7 +1211,7 @@ export function MyStuffView({ userId }: { userId: string }) {
       }
     }
     loadData()
-  }, [userId])
+  }, [userId, refreshKey])
 
   const handleEdit = (listing: DBListingWithChopes) => {
     setEditingListing(listing)
