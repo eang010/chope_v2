@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import Image from 'next/image'
 import { ArrowRight } from 'lucide-react'
 import { getLastEmail, setLastEmail } from '@/lib/auth-session'
-import { getUserByEmail } from '@/lib/db'
+import { getOrCreateUserByEmail, normalizeEmail } from '@/lib/db'
 
 interface LoginViewProps {
   onLogin: (userId: string) => void
@@ -40,21 +40,19 @@ export function LoginView({ onLogin }: LoginViewProps) {
     setIsLoading(true)
     
     try {
-      // Look up user by email in Supabase
-      const user = await getUserByEmail(email)
-      
+      const user = await getOrCreateUserByEmail(email)
+
       if (!user) {
-        setError('Email not found. Please check and try again.')
-        setIsLoading(false)
+        setError('Something went wrong. Please try again.')
         return
       }
-      
-      setLastEmail(email)
 
+      setLastEmail(normalizeEmail(email))
       onLogin(user.id)
     } catch (err) {
       console.error('Login error:', err)
       setError('Something went wrong. Please try again.')
+    } finally {
       setIsLoading(false)
     }
   }
@@ -86,7 +84,7 @@ export function LoginView({ onLogin }: LoginViewProps) {
             Welcome back, lah!
           </h2>
           <p className="text-sm text-muted-foreground mb-4">
-            Enter your work email to continue
+            Enter any work email to try the app — new users are set up automatically.
           </p>
           
           <form onSubmit={handleSubmit} className="space-y-4">

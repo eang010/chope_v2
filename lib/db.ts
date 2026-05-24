@@ -48,16 +48,80 @@ export interface Chope {
 }
 
 // Auth Functions
+
+const DEFAULT_AVATAR_SEEDS = [
+  'cat',
+  'rabbit',
+  'dog',
+  'panda',
+  'koala',
+  'bear',
+  'fox',
+  'owl',
+  'penguin',
+] as const
+
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase()
+}
+
+export function displayNameFromEmail(email: string): string {
+  const local = email.split('@')[0]?.trim() || ''
+  if (!local) return 'Guest'
+  const parts = local.split(/[._-]+/).filter(Boolean)
+  if (parts.length === 0) return local
+  return parts
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(' ')
+}
+
 export async function getUserByEmail(email: string): Promise<User | null> {
   const supabase = createClient()
+  const normalized = normalizeEmail(email)
   const { data, error } = await supabase
     .from('users')
     .select('*')
-    .eq('email', email)
+    .eq('email', normalized)
     .single()
 
   if (error || !data) return null
   return data
+}
+
+export async function createUserFromEmail(email: string): Promise<User | null> {
+  const supabase = createClient()
+  const normalized = normalizeEmail(email)
+  const avatar_seed =
+    DEFAULT_AVATAR_SEEDS[Math.floor(Math.random() * DEFAULT_AVATAR_SEEDS.length)]
+
+  const { data, error } = await supabase
+    .from('users')
+    .insert({
+      email: normalized,
+      name: displayNameFromEmail(normalized),
+      avatar_seed,
+      agency: null,
+      office_floor: null,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating user:', error)
+    return null
+  }
+
+  return data
+}
+
+export async function getOrCreateUserByEmail(email: string): Promise<User | null> {
+  const existing = await getUserByEmail(email)
+  if (existing) return existing
+
+  const created = await createUserFromEmail(email)
+  if (created) return created
+
+  return getUserByEmail(email)
 }
 
 export async function getUserById(id: string): Promise<User | null> {
