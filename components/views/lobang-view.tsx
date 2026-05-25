@@ -22,6 +22,7 @@ interface LobangViewProps {
 
 export function LobangView({
   userId,
+  refreshKey = 0,
   urgentOnly = false,
   onUrgentOnlyChange,
   focusListingId,
