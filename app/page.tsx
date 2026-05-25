@@ -25,6 +25,7 @@ import {
   setStoredUserId,
 } from '@/lib/auth-session'
 import { getUserById } from '@/lib/db'
+import { isSupabaseConfigured } from '@/lib/supabase/client'
 import { NavItem, type NavigateOptions } from '@/lib/types'
 
 function initialNavState(): AppNavState {
@@ -177,6 +178,21 @@ export default function Home() {
       historyReadyRef.current = false
     }
   }, [isLoggedIn, applyNavState, syncHistory])
+
+  if (!isSupabaseConfigured()) {
+    return (
+      <div className="min-h-dvh bg-background flex items-center justify-center p-6">
+        <div className="max-w-md text-center space-y-3">
+          <h1 className="text-lg font-semibold text-foreground">App configuration missing</h1>
+          <p className="text-sm text-muted-foreground">
+            Set <code className="text-foreground">NEXT_PUBLIC_SUPABASE_URL</code> and{' '}
+            <code className="text-foreground">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> in Netlify
+            (Site configuration → Environment variables), then trigger a new deploy.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   // Show nothing while checking session
   if (isLoading) {
